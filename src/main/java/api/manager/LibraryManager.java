@@ -90,7 +90,7 @@ public  class LibraryManager{
         if (updates.getGenre() != null && !updates.getGenre().trim().isEmpty()) {
             existing.setGenre(updates.getGenre());
         }
-        if (updates.getPrice() <= 0 && updates.getPrice() != 0) { // 0 means not provided
+        if (updates.getPrice() <= 0) { // 0 means not provided
             throw new IllegalArgumentException("Price must be greater than 0");
         }
 

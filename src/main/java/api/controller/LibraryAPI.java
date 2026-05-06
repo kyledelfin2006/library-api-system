@@ -199,7 +199,7 @@
                     return mapper.writeValueAsString(new ErrorResponse("Validation Error", e.getMessage(), 400));
                 } catch (JsonProcessingException e){
                     res.status(400);
-                    return mapper.writeValueAsString(new ErrorResponse("Validation Error",e.getMessage(),400));
+                    return mapper.writeValueAsString(new ErrorResponse(" Json Processing Error",e.getMessage(),400));
                 }
                 catch (Exception e) {
                     res.status(500);

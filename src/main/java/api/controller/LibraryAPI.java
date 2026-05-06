@@ -138,11 +138,13 @@
 
                 } catch (IllegalArgumentException e) {
                     res.status(400); //
-                    return mapper.writeValueAsString(new ErrorResponse("Validation error", e.getMessage(), 400));
-                } catch (Exception e) {
+                    return mapper.writeValueAsString(new ErrorResponse("Validation Error", e.getMessage(), 400));
+                } catch (JsonProcessingException e){
                     res.status(400);
-                    return mapper.writeValueAsString(new ErrorResponse("Invalid JSON", e.getMessage(), 400));
-
+                    return mapper.writeValueAsString(new ErrorResponse("Json Processing Error", e.getMessage(),400));
+                } catch (Exception e) {
+                    res.status(500);
+                    return mapper.writeValueAsString(new ErrorResponse("Unknown Error", e.getMessage(), 500));
                 }
             });
 
@@ -194,10 +196,14 @@
 
                 } catch (IllegalArgumentException e){
                     res.status(400);
-                    return mapper.writeValueAsString(new ErrorResponse("Validation Failed", e.getMessage(), 400));
-                } catch (Exception e) {
+                    return mapper.writeValueAsString(new ErrorResponse("Validation Error", e.getMessage(), 400));
+                } catch (JsonProcessingException e){
                     res.status(400);
-                    return mapper.writeValueAsString(new ErrorResponse("Invalid JSON", e.getMessage(), 400));
+                    return mapper.writeValueAsString(new ErrorResponse("Validation Error",e.getMessage(),400));
+                }
+                catch (Exception e) {
+                    res.status(500);
+                    return mapper.writeValueAsString(new ErrorResponse(" Unexpected Error", e.getMessage(), 500));
                 }
 
 

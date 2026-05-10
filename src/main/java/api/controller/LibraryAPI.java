@@ -124,7 +124,7 @@
 
             // GET /api/books - Get all books
             get("/api/books", (req, res) -> {
-                res.header("Content-Type", "application/json");
+                res.header("Content-Type", APPLICATION_JSON);
                 return mapper.writeValueAsString(manager.getAllBooks());
             });
 
@@ -143,10 +143,10 @@
 
                 } catch (IllegalArgumentException e) {
                     res.status(400); //
-                    return mapper.writeValueAsString(new ErrorResponse("Validation Error", e.getMessage(), 400));
+                    return mapper.writeValueAsString(new ErrorResponse(VALIDATION_FAILED, e.getMessage(), 400));
                 } catch (JsonProcessingException e){
                     res.status(400);
-                    return mapper.writeValueAsString(new ErrorResponse("Json Processing Error", e.getMessage(),400));
+                    return mapper.writeValueAsString(new ErrorResponse(PROCESSING_ERROR, e.getMessage(),400));
                 } catch (Exception e) {
                     res.status(500);
                     return mapper.writeValueAsString(new ErrorResponse("Unknown Error", e.getMessage(), 500));
@@ -196,15 +196,22 @@
                         return mapper.writeValueAsString(new ErrorResponse("Book not found", 404));
                     }
 
+                    if (req.body() == null || req.body().trim().isEmpty()) {
+                        res.status(400);
+                        return mapper.writeValueAsString(
+                                new ErrorResponse(VALIDATION_FAILED, "Request body cannot be empty", 400)
+                        );
+                    }
+
                     res.type(APPLICATION_JSON);
                     return mapper.writeValueAsString(new ApiResponse<>(true, "Book updated successfully", updated));
 
                 } catch (IllegalArgumentException e){
                     res.status(400);
-                    return mapper.writeValueAsString(new ErrorResponse("Validation Error", e.getMessage(), 400));
+                    return mapper.writeValueAsString(new ErrorResponse(VALIDATION_FAILED, e.getMessage(), 400));
                 } catch (JsonProcessingException e){
                     res.status(400);
-                    return mapper.writeValueAsString(new ErrorResponse("Json Processing Error",e.getMessage(),400));
+                    return mapper.writeValueAsString(new ErrorResponse(PROCESSING_ERROR,e.getMessage(),400));
                 }
                 catch (Exception e) {
                     res.status(500);

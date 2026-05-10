@@ -13,26 +13,26 @@ public class BookRepository implements Repository<Book> {
     public BookRepository() {}
 
     @Override
-    public void add(Book book){
+    public synchronized void add(Book book){
         books.add(book);
     }
 
     @Override
-    public void remove(Book book){
+    public synchronized void remove(Book book){
         books.remove(book);
     }
 
     @Override
-    public List<Book> getAll() {
-        return Collections.unmodifiableList(books);
+    public synchronized List<Book> getAll() {
+        return List.copyOf(books);
     }
 
     @Override
-    public void clear(){
+    public synchronized void clear(){
         books.clear();
     }
 
-    public void addAll(List<Book> Books) {
+    public synchronized void addAll(List<Book> Books) {
         books.addAll(Books);
     }
 

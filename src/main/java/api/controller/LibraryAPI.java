@@ -23,6 +23,11 @@
         private static final LibraryManager manager = new LibraryManager(repository,storage);
         private static final ObjectMapper mapper = new ObjectMapper();
 
+
+        private static final String APPLICATION_JSON = "application/json";
+        private static final String VALIDATION_FAILED = "Validation failed";
+        private static final String PROCESSING_ERROR = "Processing Error";
+
         public static void main(String[] args) {
 
             // Configure Jackson
@@ -36,13 +41,13 @@
 
             // GET /api/health -  checker for API health
             get("/api/health", (req, res) -> {
-                res.type("application/json");
+                res.type(APPLICATION_JSON);
                 return mapper.writeValueAsString(new ApiResponse<>(true, "API is running"));
             });
 
             // GET /api/books/stats -
             get("/api/books/stats", (req, res) -> {
-                res.type("application/json");
+                res.type(APPLICATION_JSON);
 
                 java.util.Map<String, Object> stats = new java.util.HashMap<>();
                 stats.put("totalBooks", manager.getAllBooks().size());
@@ -75,7 +80,7 @@
 
                 List<Book> foundBooks = manager.searchBooks(searchType, searchValue);
 
-                res.type("application/json");
+                res.type(APPLICATION_JSON);
                 return mapper.writeValueAsString(foundBooks);
 
             });
@@ -94,7 +99,7 @@
 
                     List<Book> affordableBooks = manager.getBooksWithinBudget(maxPrice);
 
-                    res.type("application/json");
+                    res.type(APPLICATION_JSON);
                     return mapper.writeValueAsString(affordableBooks);
 
                 } catch (NumberFormatException e) {
@@ -112,7 +117,7 @@
                 }
 
                 java.util.List<Book> sortedBooks = manager.getBooksSortedBy(sortField);
-                res.type("application/json");
+                res.type(APPLICATION_JSON);
                 return mapper.writeValueAsString(sortedBooks);
             });
 
@@ -131,7 +136,7 @@
                     Book newBook = manager.addBook(inputBook); // BookInput turns into Book.
 
                     res.status(201);
-                    res.type("application/json");
+                    res.type(APPLICATION_JSON);
 
                     // return successful api response
                     return mapper.writeValueAsString(new ApiResponse<>(true, "Book Added Successfully",newBook));
@@ -158,7 +163,7 @@
                     return mapper.writeValueAsString(new ErrorResponse("Book not found", 404));
                 }
 
-                res.type("application/json");
+                res.type(APPLICATION_JSON);
                 return mapper.writeValueAsString(book);
             });
 
@@ -167,7 +172,7 @@
                 String id = req.params(":id");
                 boolean deleted = manager.deleteBookById(id);
 
-                res.type("application/json");
+                res.type(APPLICATION_JSON);
 
                 if (deleted) {
                     return mapper.writeValueAsString(new ApiResponse<>(true, "Book deleted successfully"));
@@ -191,7 +196,7 @@
                         return mapper.writeValueAsString(new ErrorResponse("Book not found", 404));
                     }
 
-                    res.type("application/json");
+                    res.type(APPLICATION_JSON);
                     return mapper.writeValueAsString(new ApiResponse<>(true, "Book updated successfully", updated));
 
                 } catch (IllegalArgumentException e){
@@ -199,7 +204,7 @@
                     return mapper.writeValueAsString(new ErrorResponse("Validation Error", e.getMessage(), 400));
                 } catch (JsonProcessingException e){
                     res.status(400);
-                    return mapper.writeValueAsString(new ErrorResponse(" Json Processing Error",e.getMessage(),400));
+                    return mapper.writeValueAsString(new ErrorResponse("Json Processing Error",e.getMessage(),400));
                 }
                 catch (Exception e) {
                     res.status(500);
@@ -213,7 +218,7 @@
             // global exception handler (add before the closing brace of main)
             exception(Exception.class, (e, req, res) -> {
                 res.status(500);
-                res.type("application/json");
+                res.type(APPLICATION_JSON);
                 e.printStackTrace(); // For debugging
                 try {
                     res.body(mapper.writeValueAsString(new ErrorResponse("Internal server error", e.getMessage(), 500)));
@@ -224,7 +229,7 @@
 
            // 404 handler for undefined routes
             notFound((req, res) -> {
-                res.type("application/json");
+                res.type(APPLICATION_JSON);
                 res.status(404);
                 return mapper.writeValueAsString(new ErrorResponse("Endpoint not found", 404));
             });

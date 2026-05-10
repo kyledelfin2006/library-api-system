@@ -187,7 +187,6 @@ public  class LibraryManager{
     }
 
     // ===== HELPER METHODS =====
-
     private void validateBookInput(BookInput input) {
         if (input.getTitle() == null || input.getTitle().trim().isEmpty()) {
             throw new IllegalArgumentException("Title cannot be empty or null");

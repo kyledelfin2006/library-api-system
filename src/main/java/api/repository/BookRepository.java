@@ -1,13 +1,12 @@
 package api.repository;
 
 import api.models.Book;
-import api.repository.Repository;
-
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import org.springframework.stereotype.Repository;
 
-public class BookRepository implements Repository<Book> {
+@Repository
+public class BookRepository implements BaseRepository<Book> {
     private final List<Book> books = new ArrayList<>();
 
     public BookRepository() {}

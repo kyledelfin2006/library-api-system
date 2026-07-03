@@ -1,5 +1,4 @@
 package api.responses;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ApiResponse<T> {
     private final boolean success;

@@ -1,14 +1,18 @@
 package api.manager;
 
 import api.models.Book;
-import api.models.BookInput;
+import api.models.BookDTO;
 import api.repository.BookRepository;
 import api.storage.BookStorage;
 import api.util.BookIDGenerator;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-public  class LibraryManager{
+@Service
+public class LibraryManager{
     private final BookRepository repository;
     private final BookStorage storage;
 
@@ -16,7 +20,16 @@ public  class LibraryManager{
     public LibraryManager(BookRepository repository,BookStorage storage) {
         this.repository = repository;
         this.storage = storage;
-        loadFromStorage();
+    }
+
+    @PostConstruct
+    public void init() {
+        loadFromStorage(); // Load from storage -> repository
+    }
+
+    @PreDestroy
+    public void destroy(){
+        saveToStorage();
     }
 
     // Load from storage -> repository
@@ -36,7 +49,6 @@ public  class LibraryManager{
         }
 
         BookIDGenerator.setNextId(maxId + 1);
-
         repository.addAll(loaded); // Add to the repository
     }
 
@@ -60,10 +72,8 @@ public  class LibraryManager{
         return null;
     }
 
-    public Book addBook(BookInput input){
-
+    public Book addBook(BookDTO input){
         validateBookInput(input); // Validate before Adding book
-
         Book newBook = new Book(
                 input.getTitle(),
                 input.getAuthor(),
@@ -73,12 +83,13 @@ public  class LibraryManager{
         repository.add(newBook);
         saveToStorage();
         return newBook;
-
     }
 
-    public Book patchBook(String id, BookInput updates) {
+    public Book patchBook(String id, BookDTO updates) {
         Book existing = findBookById(id);
         if (existing == null) return null;
+
+
 
         // Update only provided fields, If Null/Not given ignore.
         if (updates.getTitle() != null && !updates.getTitle().trim().isEmpty()) {
@@ -90,8 +101,12 @@ public  class LibraryManager{
         if (updates.getGenre() != null && !updates.getGenre().trim().isEmpty()) {
             existing.setGenre(updates.getGenre());
         }
-        if (updates.getPrice() <= 0) { // 0 means not provided
-            throw new IllegalArgumentException("Price must be greater than 0");
+
+        if (updates.getPrice() != null) {
+            if (updates.getPrice() <= 0) {
+                throw new IllegalArgumentException("Price must be greater than 0");
+            }
+            existing.setPrice(updates.getPrice());
         }
 
         saveToStorage();
@@ -129,9 +144,6 @@ public  class LibraryManager{
         }
         return results;
     }
-
-
-
     public List<Book> getBooksSortedBy(String field) {
         if (field == null || field.trim().isEmpty()) {
             return new ArrayList<>(repository.getAll());
@@ -187,7 +199,7 @@ public  class LibraryManager{
     }
 
     // ===== HELPER METHODS =====
-    private void validateBookInput(BookInput input) {
+    private void validateBookInput(BookDTO input) {
         if (input.getTitle() == null || input.getTitle().trim().isEmpty()) {
             throw new IllegalArgumentException("Title cannot be empty or null");
         }

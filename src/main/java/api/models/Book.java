@@ -13,8 +13,7 @@ public class Book {
     private double price;
 
     // DEFAULT CONSTRUCTOR - REQUIRED for Jackson
-    public Book() {
-    }
+    public Book() {}
 
     // CONSTRUCTOR 1: For NEW books (user POST request)
     public Book(String title, String author, String genre, double price) {

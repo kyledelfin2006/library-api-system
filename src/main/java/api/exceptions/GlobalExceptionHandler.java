@@ -1,0 +1,134 @@
+package api.exceptions;
+
+import api.responses.ErrorResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.NoHandlerFoundException;
+
+/**
+ * Global exception handler for REST controllers.
+ * Converts exceptions to standardized JSON error responses.
+ */
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    /**
+     * Handles IllegalArgumentException thrown when input validation fails.
+     * @param ex the exception
+     * @return 400 Bad Request with error details
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
+        logger.warn("Validation failed: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse("Validation failed", ex.getMessage(), 400);
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    /**
+     * Handles malformed JSON in request bodies.
+     * @param ex the exception
+     * @return 400 Bad Request with a generic JSON parsing error
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleJsonParseError(HttpMessageNotReadableException ex) {
+        ErrorResponse error = new ErrorResponse("Processing Error", "Invalid JSON format in request body", 400);
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    /**
+     * Handles validation errors from @Valid annotations (e.g., @NotBlank, @Positive).
+     * @param ex the exception containing validation errors
+     * @return 400 Bad Request with all validation messages combined
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationFailures(MethodArgumentNotValidException ex) {
+        String allErrors = ex.getBindingResult().getAllErrors().stream()
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .reduce((msg1, msg2) -> msg1 + ", " + msg2)
+                .orElse("Validation failed");
+
+        ErrorResponse error = new ErrorResponse("Validation failed", allErrors, 400);
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    /**
+     * Handles requests to undefined endpoints (404).
+     * Requires spring.mvc.throw-exception-if-no-handler-found=true and
+     * spring.web.resources.add-mappings=false in application.properties.
+     * @param ex the exception containing the request URL and method
+     * @return 404 Not Found with details
+     */
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<ErrorResponse> handleEndpointNotFound(NoHandlerFoundException ex) {
+        ErrorResponse error = new ErrorResponse(
+                "Endpoint not found",
+                "No handler found for " + ex.getHttpMethod() + " " + ex.getRequestURL(),
+                404
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    /**
+     * Handles HTTP method not supported (405).
+     * @param ex the exception
+     * @return 405 Method Not Allowed with supported methods
+     */
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleMethodNotAllowed(HttpRequestMethodNotSupportedException ex) {
+        ErrorResponse error = new ErrorResponse(
+                "Method not allowed",
+                ex.getMethod() + " is not supported for this endpoint. Supported methods: " + ex.getSupportedHttpMethods(),
+                405
+        );
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(error);
+    }
+
+    /**
+     * Handles storage-related errors (e.g., file I/O failures).
+     * @param ex the exception
+     * @return 500 Internal Server Error
+     */
+    @ExceptionHandler(StorageException.class)
+    public ResponseEntity<ErrorResponse> handleStorageError(StorageException ex) {
+        logger.error("Storage error occurred", ex);
+        ErrorResponse error = new ErrorResponse("Storage error", ex.getMessage(), 500);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+
+    /**
+     *  Handler for when book is not found
+     * @param ex the exception
+     * @return 404 not found
+     */
+    @ExceptionHandler(BookNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleBookNotFound(BookNotFoundException ex) {
+        logger.warn("Book not found: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse("Book not found", ex.getMessage(), 404);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    /**
+     * Fallback handler for any other unhandled exception.
+     * @param ex the exception
+     * @return 500 Internal Server Error with generic message
+     */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleEverythingElse(Exception ex) {
+        logger.error("Unexpected error occurred", ex);
+        ErrorResponse error = new ErrorResponse("Internal server error", ex.getMessage(), 500);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+
+
+
+}

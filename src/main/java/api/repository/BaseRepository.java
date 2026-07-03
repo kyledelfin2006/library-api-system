@@ -2,7 +2,7 @@ package api.repository;
 
 import java.util.List;
 
-public interface Repository<T> {
+public interface BaseRepository<T> {
     public void add(T type);
     public void remove(T type);
     List<T> getAll();

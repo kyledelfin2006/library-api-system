@@ -91,6 +91,7 @@ src/
         └── testAPI/
             ├── BookTest.java                    # Unit tests for Book's self-validation
             └── LibraryManagerTest.java          # Mockito-based tests for LibraryManager's business logic
+            └── BookIDGeneratorTest.java          # Unit tests for BookIDGenerator's generate id & concurrency logic
 .gitignore
 pom.xml
 README.md

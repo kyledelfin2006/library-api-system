@@ -47,7 +47,6 @@ public class LibraryManager{
                 }
             }
         }
-
         BookIDGenerator.setNextId(maxId + 1);
         repository.addAll(loaded); // Add to the repository
     }
@@ -64,12 +63,7 @@ public class LibraryManager{
     }
 
     public Book findBookById(String id){
-        for (Book book : repository.getAll()){
-            if (book.getId().equals(id)){
-                return book;
-            }
-        }
-        return null;
+        return repository.getAll().stream().filter(book -> book.getId().equals(id)).findFirst().orElse(null);
     }
 
     public Book addBook(BookDTO input){
@@ -125,13 +119,10 @@ public class LibraryManager{
     }
 
     public List<Book> getBooksWithinBudget(double maxPrice) {
-        List<Book> results = new ArrayList<>();
-        for (Book book : repository.getAll()) {
-            if (book.getPrice() <= maxPrice) {
-                results.add(book);
-            }
-        }
-        return results;
+        return repository.getAll()
+                .stream()
+                .filter(b -> b.getPrice() <= maxPrice)
+                .toList();
     }
 
 

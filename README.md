@@ -91,6 +91,7 @@ src/
         └── testAPI/
             ├── BookTest.java                    # Unit tests for Book's self-validation
             └── LibraryManagerTest.java          # Mockito-based tests for LibraryManager's business logic
+            └── BookIDGeneratorTest.java          # Unit tests for BookIDGenerator's generate id & concurrency logic
 .gitignore
 pom.xml
 README.md
@@ -350,6 +351,8 @@ mvn test
 **`BookTest`** — verifies `Book`'s self-validation: a valid book is constructed correctly with a generated 4-digit ID; empty title, null author, negative price, and zero price all throw `IllegalArgumentException`; two sequentially created books receive distinct IDs.
 
 **`LibraryManagerTest`** — a Mockito-based suite (`@ExtendWith(MockitoExtension.class)`) with mocked `BookRepository` and `BookStorage`, covering: adding valid/invalid books, retrieving all books, finding by ID (existing/non-existing), deleting (existing/non-existing), patching (field-level updates, price validation, non-existing ID), budget filtering, search across all four types, sorting across all five fields (including invalid-field fallback), total value calculation, most-expensive-book lookup, and direct testing of the `bookMatches` matching logic.
+
+**`BookIDGeneratorTest`** — a JUnit 5 test suite covering basic ID generation (first ID is `"0000"`, sequential increments, and manual resetting), plus rigorous concurrency validation with `ExecutorService` and `CountDownLatch` to prove thread‑safety. The suite includes stress tests with up to 50 threads generating thousands of IDs with zero duplicates, and a resilience test that randomly resets the generator during concurrent access to ensure no exceptions or corruption occur. All tests confirm that `AtomicInteger` correctly handles concurrent increments and resets, guaranteeing unique, zero‑padded IDs for every book even under heavy multi‑threaded load.
 
 ---
 

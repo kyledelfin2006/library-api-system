@@ -115,7 +115,6 @@ public class LibraryManager{
             saveToStorage();
             return true;
         }
-
         return false;
     }
 
@@ -138,7 +137,7 @@ public class LibraryManager{
     }
     public List<Book> getBooksSortedBy(String field) {
         if (field == null || field.trim().isEmpty()) {
-            return new ArrayList<>(repository.getAll());
+            return List.copyOf(repository.getAll());
         }
 
         List<Book> sortedCopy = new ArrayList<>(repository.getAll());
@@ -160,8 +159,6 @@ public class LibraryManager{
             case "genre":
                 sortedCopy.sort(Comparator.comparing(Book::getGenre));
                 break;
-            default:
-                return new ArrayList<>(repository.getAll()); // Invalid field, return unsorted
         }
         return sortedCopy;
     }
@@ -175,19 +172,19 @@ public class LibraryManager{
     }
 
     public Book findMostExpensiveBook(){
-        if (repository.getAll().isEmpty()) {
+        List<Book> allBooks = repository.getAll();
+
+        if (allBooks.isEmpty()) {
             return null;
         }
 
-        Book mostExpensive = repository.getAll().getFirst();
-        for (Book book : repository.getAll()){
+        Book mostExpensive = allBooks.getFirst();
+        for (Book book : allBooks) {
             if (book.getPrice() > mostExpensive.getPrice()) {
                 mostExpensive = book;
             }
         }
-
         return mostExpensive;
-
     }
 
     // ===== HELPER METHODS =====

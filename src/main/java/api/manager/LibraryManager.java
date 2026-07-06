@@ -1,5 +1,6 @@
 package api.manager;
 
+import api.exceptions.BookNotFoundException;
 import api.models.Book;
 import api.models.BookDTO;
 import api.repository.BookRepository;
@@ -80,31 +81,31 @@ public class LibraryManager{
     }
 
     public Book patchBook(String id, BookDTO updates) {
-        Book existing = findBookById(id);
-        if (existing == null) return null;
-
-
+        Book existingBook = findBookById(id);
+        if (existingBook == null){
+            throw new BookNotFoundException("Couldn't find book of that ID");
+        }
 
         // Update only provided fields, If Null/Not given ignore.
         if (updates.getTitle() != null && !updates.getTitle().trim().isEmpty()) {
-            existing.setTitle(updates.getTitle());
+            existingBook.setTitle(updates.getTitle());
         }
         if (updates.getAuthor() != null && !updates.getAuthor().trim().isEmpty()) {
-            existing.setAuthor(updates.getAuthor());
+            existingBook.setAuthor(updates.getAuthor());
         }
         if (updates.getGenre() != null && !updates.getGenre().trim().isEmpty()) {
-            existing.setGenre(updates.getGenre());
+            existingBook.setGenre(updates.getGenre());
         }
 
         if (updates.getPrice() != null) {
             if (updates.getPrice() <= 0) {
                 throw new IllegalArgumentException("Price must be greater than 0");
             }
-            existing.setPrice(updates.getPrice());
+            existingBook.setPrice(updates.getPrice());
         }
 
         saveToStorage();
-        return existing;
+        return existingBook;
     }
 
     public boolean deleteBookById(String id) {

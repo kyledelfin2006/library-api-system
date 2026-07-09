@@ -3,7 +3,7 @@ package api.manager;
 import api.exceptions.BookNotFoundException;
 import api.models.Book;
 import api.models.BookDTO;
-import api.repository.BookRepository;
+import api.repository.BaseRepository;
 import api.storage.BookStorage;
 import api.util.BookIDGenerator;
 import jakarta.annotation.PostConstruct;
@@ -14,11 +14,11 @@ import java.util.*;
 
 @Service
 public class LibraryManager{
-    private final BookRepository repository;
+    private final BaseRepository<Book> repository;
     private final BookStorage storage;
 
 
-    public LibraryManager(BookRepository repository,BookStorage storage) {
+    public LibraryManager(BaseRepository<Book> repository,BookStorage storage) {
         this.repository = repository;
         this.storage = storage;
     }
@@ -224,7 +224,7 @@ public class LibraryManager{
             case "price":
                 try {
                     double priceValue = Double.parseDouble(value);
-                    return Math.abs(book.getPrice() - priceValue) < 0.0001;
+                    return Math.abs(book.getPrice() - priceValue) < 0.0001; // Instead of concrete we use .abs for near accuracy
                 } catch (NumberFormatException e) {
                     return false;
                 }

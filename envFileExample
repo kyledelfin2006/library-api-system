@@ -1,0 +1,3 @@
+POSTGRES_DB=librarydb
+POSTGRES_USER=admin
+POSTGRES_PASSWORD=change_me

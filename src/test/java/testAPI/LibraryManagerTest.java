@@ -3,7 +3,7 @@ package testAPI;
 import api.manager.LibraryManager;
 import api.models.Book;
 import api.models.BookDTO;
-import api.repository.BookRepository;
+import api.repository.BaseRepository;
 import api.storage.BookStorage;
 import api.util.BookIDGenerator;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,7 +24,7 @@ import static org.mockito.Mockito.*;
 class LibraryManagerTest {
 
     @Mock
-    private BookRepository repository;
+    private BaseRepository<Book> repository;
 
     @Mock
     private BookStorage storage;

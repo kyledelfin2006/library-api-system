@@ -116,3 +116,5 @@ Thumbs.db
 *.zip
 *.tar
 *.rar
+.env
+books.txt

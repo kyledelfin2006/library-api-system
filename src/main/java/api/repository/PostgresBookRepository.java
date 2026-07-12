@@ -9,6 +9,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import java.sql.Statement;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class PostgresBookRepository implements BaseRepository<Book> {
@@ -32,7 +33,6 @@ public class PostgresBookRepository implements BaseRepository<Book> {
     @Override
     public void add(Book book) {
         String sql = "INSERT INTO books (title, author, genre, price) VALUES (?, ?, ?, ?)";
-
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
@@ -44,10 +44,11 @@ public class PostgresBookRepository implements BaseRepository<Book> {
             return ps;
         }, keyHolder);
 
-        // Crucial: Retrieve the auto-generated ID and set it back into the Java object
-        Number generatedId = keyHolder.getKey();
-        if (generatedId != null) {
-            book.setId(generatedId.longValue()); // The API response will now show the correct DB ID!
+        // Extract the generated ID from the map of returned columns
+        Map<String, Object> keys = keyHolder.getKeys();
+        if (keys != null && keys.containsKey("id")) {
+            Number generatedId = (Number) keys.get("id");
+            book.setId(generatedId.longValue());
         }
     }
 

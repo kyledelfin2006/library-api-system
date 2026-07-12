@@ -10,7 +10,6 @@
     import org.springframework.http.HttpStatus;
     import org.springframework.http.ResponseEntity;
     import org.springframework.web.bind.annotation.*;
-
     import java.util.HashMap;
     import java.util.List;
     import java.util.Map;
@@ -82,7 +81,7 @@
 
         // Get book by ID
         @GetMapping("/books/{id}")
-        public ResponseEntity<Book> getBookById(@PathVariable String id) {
+        public ResponseEntity<Book> getBookById(@PathVariable Long id) {
             Book book = manager.findBookById(id);
             if (book == null) {
                 throw new BookNotFoundException("Book with ID " + id + " not found");
@@ -92,7 +91,7 @@
 
         // Delete a book
         @DeleteMapping("/books/{id}")
-        public ResponseEntity<ApiResponse<Void>> deleteBook(@PathVariable String id) {
+        public ResponseEntity<ApiResponse<Void>> deleteBook(@PathVariable Long id) {
             boolean deleted = manager.deleteBookById(id);
             if (!deleted) {
                 throw new BookNotFoundException("Book with ID " + id + " not found");
@@ -114,7 +113,7 @@
         // Patch (partial update)
         @PatchMapping("/books/{id}")
         public ResponseEntity<ApiResponse<Book>> patchBook(
-                @PathVariable String id,
+                @PathVariable Long id,
                 @RequestBody BookDTO updates) {
 
             Book updated = manager.patchBook(id, updates);

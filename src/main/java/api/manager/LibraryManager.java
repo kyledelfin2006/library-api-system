@@ -4,10 +4,6 @@ import api.exceptions.BookNotFoundException;
 import api.models.Book;
 import api.models.BookDTO;
 import api.repository.BaseRepository;
-import api.storage.BookStorage;
-import api.util.BookIDGenerator;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -15,55 +11,17 @@ import java.util.*;
 @Service
 public class LibraryManager{
     private final BaseRepository<Book> repository;
-    private final BookStorage storage;
 
 
-    public LibraryManager(BaseRepository<Book> repository,BookStorage storage) {
+    public LibraryManager(BaseRepository<Book> repository) {
         this.repository = repository;
-        this.storage = storage;
     }
-
-    @PostConstruct
-    public void init() {
-        loadFromStorage(); // Load from storage -> repository
-    }
-
-    @PreDestroy
-    public void destroy(){
-        saveToStorage();
-    }
-
-    // Load from storage -> repository
-    private void loadFromStorage() {
-        List<Book> loaded = storage.load(); // Loads storage into loadedList
-
-        // Update nextId based on loaded students
-        int maxId = 0;
-        for (Book b : loaded) {
-            String id = b.getId();
-            if (id != null && !id.isEmpty()){ // Null Checker
-                int idNum = Integer.parseInt(b.getId()); // Parse Id into IdNum
-                if (idNum > maxId) { // the largest loaded ID is the maxID
-                    maxId = idNum;
-                }
-            }
-        }
-        BookIDGenerator.setNextId(maxId + 1);
-        repository.addAll(loaded); // Add to the repository
-    }
-
-    // Save from repository -> storage
-    private void saveToStorage() {
-        List<Book> loaded = repository.getAll();
-        storage.save(loaded); // Calls save method of storage
-    }
-
 
     public List<Book> getAllBooks(){
         return new ArrayList<Book>(repository.getAll());
     }
 
-    public Book findBookById(String id){
+    public Book findBookById(Long id){
         return repository.getAll().stream().filter(book -> book.getId().equals(id)).findFirst().orElse(null);
     }
 
@@ -76,11 +34,10 @@ public class LibraryManager{
                 input.getPrice());
 
         repository.add(newBook);
-        saveToStorage();
         return newBook;
     }
 
-    public Book patchBook(String id, BookDTO updates) {
+    public Book patchBook(Long id, BookDTO updates) {
         Book existingBook = findBookById(id);
         if (existingBook == null){
             throw new BookNotFoundException("Couldn't find book of that ID");
@@ -103,16 +60,13 @@ public class LibraryManager{
             }
             existingBook.setPrice(updates.getPrice());
         }
-
-        saveToStorage();
         return existingBook;
     }
 
-    public boolean deleteBookById(String id) {
+    public boolean deleteBookById(Long id) {
         Book bookToRemove = findBookById(id);
         if (bookToRemove != null) {
             repository.remove(bookToRemove);
-            saveToStorage();
             return true;
         }
         return false;
@@ -135,6 +89,7 @@ public class LibraryManager{
         }
         return results;
     }
+
     public List<Book> getBooksSortedBy(String field) {
         if (field == null || field.trim().isEmpty()) {
             return List.copyOf(repository.getAll());

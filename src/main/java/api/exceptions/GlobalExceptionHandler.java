@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
+import java.sql.SQLException;
+
 /**
  * Global exception handler for REST controllers.
  * Converts exceptions to standardized JSON error responses.
@@ -98,10 +100,10 @@ public class GlobalExceptionHandler {
      * @param ex the exception
      * @return 500 Internal Server Error
      */
-    @ExceptionHandler(StorageException.class)
-    public ResponseEntity<ErrorResponse> handleStorageError(StorageException ex) {
-        logger.error("Storage error occurred", ex);
-        ErrorResponse error = new ErrorResponse("Storage error", ex.getMessage(), 500);
+    @ExceptionHandler(SQLException.class)
+    public ResponseEntity<ErrorResponse> handleStorageError(SQLException ex) {
+        logger.error("SQL error occurred", ex);
+        ErrorResponse error = new ErrorResponse("SQL error", ex.getMessage(), 500);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 

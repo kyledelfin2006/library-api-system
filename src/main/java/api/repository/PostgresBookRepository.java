@@ -1,9 +1,13 @@
 package api.repository;
 
+import java.sql.PreparedStatement;
 import api.models.Book;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import java.sql.Statement;
 import java.util.List;
 
 @Repository
@@ -17,7 +21,7 @@ public class PostgresBookRepository implements BaseRepository<Book> {
 
     private final RowMapper<Book> rowMapper = (rs, rowNum) -> {
         Book book = new Book();
-        book.setId(rs.getString("id"));
+        book.setId(rs.getLong("id"));
         book.setTitle(rs.getString("title"));
         book.setAuthor(rs.getString("author"));
         book.setGenre(rs.getString("genre"));
@@ -27,13 +31,24 @@ public class PostgresBookRepository implements BaseRepository<Book> {
 
     @Override
     public void add(Book book) {
-        String sql = "INSERT INTO books (id, title, author, genre, price) VALUES (?, ?, ?, ?, ?)";
-        jdbcTemplate.update(sql,
-                book.getId(),
-                book.getTitle(),
-                book.getAuthor(),
-                book.getGenre(),
-                book.getPrice());
+        String sql = "INSERT INTO books (title, author, genre, price) VALUES (?, ?, ?, ?)";
+
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        jdbcTemplate.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            ps.setString(1, book.getTitle());
+            ps.setString(2, book.getAuthor());
+            ps.setString(3, book.getGenre());
+            ps.setDouble(4, book.getPrice());
+            return ps;
+        }, keyHolder);
+
+        // Crucial: Retrieve the auto-generated ID and set it back into the Java object
+        Number generatedId = keyHolder.getKey();
+        if (generatedId != null) {
+            book.setId(generatedId.longValue()); // The API response will now show the correct DB ID!
+        }
     }
 
     @Override
@@ -53,9 +68,14 @@ public class PostgresBookRepository implements BaseRepository<Book> {
 
     @Override
     public void addAll(List<Book> books) {
-        for (Book b : books) {
-            add(b);
-        }
+        String sql = "INSERT INTO books (title, author, genre, price) VALUES (?, ?, ?, ?)";
+
+        jdbcTemplate.batchUpdate(sql, books, books.size(), (ps, book) -> {
+            ps.setString(1, book.getTitle());
+            ps.setString(2, book.getAuthor());
+            ps.setString(3, book.getGenre());
+            ps.setDouble(4, book.getPrice());
+        });
     }
 
 

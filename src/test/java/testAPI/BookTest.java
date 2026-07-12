@@ -14,8 +14,9 @@ class BookTest {
         assertEquals("Orwell", book.getAuthor());
         assertEquals("Fiction", book.getGenre());
         assertEquals(15.99, book.getPrice());
-        assertNotNull(book.getId());
-        assertTrue(book.getId().matches("\\d{4}")); // "0000" format
+        // ID is null until the repository saves it and sets it via KeyHolder.
+        // We do NOT test it here.
+        assertNull(book.getId()); // This is the correct state after construction.
     }
 
     @Test
@@ -47,11 +48,8 @@ class BookTest {
         });
     }
 
-    @Test
-    void testIdIsGenerated() {
-        Book book1 = new Book("Book1", "Author1", "Genre1", 10.00);
-        Book book2 = new Book("Book2", "Author2", "Genre2", 20.00);
-
-        assertNotEquals(book1.getId(), book2.getId());
-    }
+    // ID generation is now handled by PostgreSQL, not the constructor.
+    // This test is obsolete – delete it.
+    // @Test
+    // void testIdIsGenerated() { ... }
 }

@@ -1,12 +1,11 @@
 package api.models;
 
-import api.util.BookIDGenerator;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonPropertyOrder({"id", "title", "author", "genre", "price"})
 public class Book {
 
-    private String id;
+    private Long id;
     private String title;
     private String author;
     private String genre;
@@ -26,18 +25,17 @@ public class Book {
         this.author = author;
         this.genre = genre;
         this.price = price;
-        this.id = BookIDGenerator.generateNextID();
     }
 
     // Getters
-    public String getId() { return id; }
+    public Long getId() { return id; }
     public String getTitle() { return title; }
     public String getAuthor() { return author; }
     public String getGenre() { return genre; }
     public double getPrice() { return price; }
 
     // Setters - Jackson uses these for deserialization
-    public void setId(String id) { this.id = id; }
+    public void setId(Long id) { this.id = id; }
     public void setTitle(String title) { this.title = title; }
     public void setAuthor(String author) { this.author = author; }
     public void setGenre(String genre) { this.genre = genre; }

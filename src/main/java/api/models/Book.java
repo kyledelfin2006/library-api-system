@@ -19,7 +19,7 @@ public class Book {
         validate(title, "Title");
         validate(author, "Author");
         validate(genre, "Genre");
-        validate(price, "Price");
+        validatePrice(price);
 
         this.title = title;
         this.author = author;
@@ -34,7 +34,7 @@ public class Book {
     public String getGenre() { return genre; }
     public double getPrice() { return price; }
 
-    // Setters - Jackson uses these for deserialization
+    // Setters - Jackson uss these for deserialization
     public void setId(Long id) { this.id = id; }
     public void setTitle(String title) { this.title = title; }
     public void setAuthor(String author) { this.author = author; }
@@ -48,9 +48,9 @@ public class Book {
         }
     }
 
-    private void validate(double value, String fieldName) {
+    private void validatePrice(double value) {
         if (value <= 0) {
-            throw new IllegalArgumentException("Error! " + fieldName + " must be greater than 0!");
+            throw new IllegalArgumentException("Error! Price must be greater than 0!");
         }
     }
 

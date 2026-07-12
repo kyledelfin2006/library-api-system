@@ -1,5 +1,6 @@
 package testAPI;
 
+import api.exceptions.BookNotFoundException;
 import api.manager.LibraryManager;
 import api.models.Book;
 import api.models.BookDTO;
@@ -193,16 +194,12 @@ class LibraryManagerTest {
     }
 
     @Test
-    void patchBook_NonExisting_ReturnsNull() {
+    void patchBook_NonExisting_ThrowsBookNotFoundException() {
         initRepositoryWithBooks(List.of(book1));
-
         BookDTO updates = new BookDTO("New Title", null, null, 10.0);
-        // Changed from "9999" to 9999L
-        Book result = manager.patchBook(9999L, updates);
-
-        assertNull(result);
-        // REMOVED: verify(storage, never()).save(anyList());
+        assertThrows(BookNotFoundException.class, () -> manager.patchBook(9999L, updates));
     }
+
 
     // ===================== BUDGET & SEARCH TESTS =====================
     // (These are unchanged because they don't use IDs)

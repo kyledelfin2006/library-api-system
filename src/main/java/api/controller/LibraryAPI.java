@@ -106,8 +106,8 @@
 
         @GetMapping("/books/sorted")
         public ResponseEntity<List<Book>> getSortedBooks(
-                @RequestParam(required = false, defaultValue = "title") String by) {
-            return ResponseEntity.ok(manager.getBooksSortedBy(by));
+                @RequestParam(required = false, defaultValue = "title") String category) {
+            return ResponseEntity.ok(manager.getBooksSortedBy(category));
         }
 
         // Patch (partial update)

@@ -117,12 +117,17 @@
                 @RequestBody BookDTO updates) {
 
             Book updated = manager.patchBook(id, updates);
-            if (updated == null) {
-                throw new BookNotFoundException("Book with ID " + id + " not found");
-            }
             return ResponseEntity.ok(new ApiResponse<>(true, "Book updated successfully", updated));
         }
 
+        // Put (complete update)
+        @PutMapping("/books/{id}")
+        public ResponseEntity<ApiResponse<Book>> replaceBook(
+                @PathVariable Long id,
+                @Valid @RequestBody BookDTO updates){
 
+             Book updated = manager.replaceBook(id,updates);
+            return ResponseEntity.ok(new ApiResponse<>(true, "Book updated successfully", updated));
+        }
     }
 

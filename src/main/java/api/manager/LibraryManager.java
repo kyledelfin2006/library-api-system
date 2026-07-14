@@ -63,6 +63,22 @@ public class LibraryManager{
         return existingBook;
     }
 
+    public Book replaceBook(Long id, BookDTO updates) {
+        Book existingBook = findBookById(id);
+        if (existingBook == null){
+            throw new BookNotFoundException("Couldn't find book of that ID");
+        }
+
+        validateBookInput(updates);
+
+        existingBook.setTitle(updates.getTitle());
+        existingBook.setAuthor(updates.getAuthor());
+        existingBook.setGenre(updates.getGenre());
+        existingBook.setPrice(updates.getPrice());
+
+        return existingBook;
+    }
+
     public boolean deleteBookById(Long id) {
         Book bookToRemove = findBookById(id);
         if (bookToRemove != null) {
@@ -154,7 +170,7 @@ public class LibraryManager{
             throw new IllegalArgumentException("Genre cannot be empty or null");
         }
         if (input.getPrice() <= 0) {
-            throw new IllegalArgumentException("Price must be greater than 0");
+            throw new IllegalArgumentException("Price cannot be empty or null and must be greater than 0");
         }
     }
 

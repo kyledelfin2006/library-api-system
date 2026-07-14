@@ -14,7 +14,6 @@ public class Book {
     // DEFAULT CONSTRUCTOR - REQUIRED for Jackson
     public Book() {}
 
-    // CONSTRUCTOR 1: For NEW books (user POST request)
     public Book(String title, String author, String genre, double price) {
         validate(title, "Title");
         validate(author, "Author");

@@ -66,7 +66,7 @@
                 List<Book> affordableBooks = manager.getBooksWithinBudget(maxedPrice);
                 return ResponseEntity.ok(affordableBooks);
             } catch (NumberFormatException e) {
-                throw new  IllegalArgumentException("Invalid Number: MaxPrice must be a valid number");
+                throw new  IllegalArgumentException("Invalid Number: Max Price must be a valid number");
             }
         }
 

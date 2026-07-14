@@ -79,5 +79,17 @@ public class PostgresBookRepository implements BaseRepository<Book> {
         });
     }
 
+    @Override
+    public void update(Book book) {
+        String sql = "UPDATE books SET title=?, author=?, genre=?, price=? WHERE id=?";
+        jdbcTemplate.update(sql,
+                book.getTitle(),
+                book.getAuthor(),
+                book.getGenre(),
+                book.getPrice(),
+                book.getId()
+        );
+    }
+
 
 }

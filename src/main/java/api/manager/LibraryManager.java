@@ -60,6 +60,7 @@ public class LibraryManager{
             }
             existingBook.setPrice(updates.getPrice());
         }
+        repository.update(existingBook);
         return existingBook;
     }
 
@@ -76,6 +77,7 @@ public class LibraryManager{
         existingBook.setGenre(updates.getGenre());
         existingBook.setPrice(updates.getPrice());
 
+        repository.update(existingBook);
         return existingBook;
     }
 
@@ -169,7 +171,7 @@ public class LibraryManager{
         if (input.getGenre() == null || input.getGenre().trim().isEmpty()) {
             throw new IllegalArgumentException("Genre cannot be empty or null");
         }
-        if (input.getPrice() <= 0) {
+        if (input.getPrice() == null || input.getPrice() <= 0) {
             throw new IllegalArgumentException("Price cannot be empty or null and must be greater than 0");
         }
     }

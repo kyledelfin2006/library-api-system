@@ -10,4 +10,5 @@ public interface BaseRepository<T> {
     List<T> getAll();
     public void clear();
     public void addAll(List<T> types);
+    public void update(T type);
 }

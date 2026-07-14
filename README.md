@@ -255,7 +255,7 @@ This confirms `LibraryManager.addBook` behaves correctly under concurrent calls 
 * Maven
 * Docker and Docker Compose (for running PostgreSQL, or the whole stack)
 
-### Option A — Run everything with Docker Compose
+### Option A — Run everything with Docker Compose (Recommended)
 1. Copy the example env file and fill in real values:
    ```bash
    cp envFileExample .env
@@ -271,7 +271,7 @@ This confirms `LibraryManager.addBook` behaves correctly under concurrent calls 
    ```
 3. Start both services:
    ```bash
-   docker-compose up --build
+   docker compose up --build
    ```
    This brings up a `postgres:15` container (with `schema.sql` mounted as an init script) and the app container, wired together via the `SPRING_DATASOURCE_*` environment variables that `docker-compose.yml` derives from your `.env`.
 4. The API is available at `http://localhost:8080`, Postgres at `localhost:5432`.
@@ -279,7 +279,7 @@ This confirms `LibraryManager.addBook` behaves correctly under concurrent calls 
 ### Option B — Run the app locally against a container-only database
 1. Start only the database:
    ```bash
-   docker-compose up db
+   docker compose up db
    ```
 2. Export the datasource variables `application.properties` expects (it has **no defaults** — the app will fail to start without these):
    ```bash

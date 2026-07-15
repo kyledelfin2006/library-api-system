@@ -1,9 +1,11 @@
 package api.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
+@JsonIgnoreProperties(ignoreUnknown = true) // Ignores unknown fields
 public class BookDTO {
     @NotBlank(message = "Title cannot be empty")
     @Size(max = 100, message = "Title cannot exceed 100 characters")
@@ -16,6 +18,7 @@ public class BookDTO {
     @NotBlank(message = "Genre cannot be empty")
     private String genre;
 
+    @NotBlank(message = "Price cannot be empty")
     @Positive(message = "Price must be greater than 0")
     private Double price;
 

@@ -11,6 +11,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.sql.SQLException;
@@ -120,6 +121,20 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handler for when a datatype is not appropriate to the parameter.
+     * @param ex the exception
+     * @return 400 Invalid parameter type with specific message
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String message = String.format("Invalid value '%s' for parameter '%s'",
+                ex.getValue(), ex.getName());
+        ErrorResponse error = new ErrorResponse("Invalid parameter", message, 400);
+        return ResponseEntity.badRequest().body(error);
+    }
+
+
+    /**
      * Fallback handler for any other unhandled exception.
      * @param ex the exception
      * @return 500 Internal Server Error with generic message
@@ -130,6 +145,7 @@ public class GlobalExceptionHandler {
         ErrorResponse error = new ErrorResponse("Internal server error", ex.getMessage(), 500);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
+
 
 
 

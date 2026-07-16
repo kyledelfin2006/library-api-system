@@ -47,9 +47,5 @@ class BookTest {
             new Book("1984", "Orwell", "Fiction", 0);
         });
     }
-
     // ID generation is now handled by PostgreSQL, not the constructor.
-    // This test is obsolete – delete it.
-    // @Test
-    // void testIdIsGenerated() { ... }
 }

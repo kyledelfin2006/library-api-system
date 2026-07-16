@@ -65,15 +65,35 @@ public class LibraryManager{
 
     @Transactional
     public Book replaceBook(Long id, BookDTO updates) {
+        // 1. Fetch the existing book (throws 404 if not found)
         Book existingBook = findBookById(id);
 
+        // 2. Validate that the DTO contains all required fields
+        //    (Even though @Valid in the controller ensures this, we keep a defensive check.)
+        if (updates == null) {
+            throw new IllegalArgumentException("Book data must not be null");
+        }
+        if (updates.getTitle() == null || updates.getTitle().trim().isEmpty()) {
+            throw new IllegalArgumentException("Title cannot be empty");
+        }
+        if (updates.getAuthor() == null || updates.getAuthor().trim().isEmpty()) {
+            throw new IllegalArgumentException("Author cannot be empty");
+        }
+        if (updates.getGenre() == null || updates.getGenre().trim().isEmpty()) {
+            throw new IllegalArgumentException("Genre cannot be empty");
+        }
+        if (updates.getPrice() == null || updates.getPrice() <= 0) {
+            throw new IllegalArgumentException("Price must be greater than 0");
+        }
+
+        // 3. Apply all updates
         existingBook.setTitle(updates.getTitle());
         existingBook.setAuthor(updates.getAuthor());
         existingBook.setGenre(updates.getGenre());
         existingBook.setPrice(updates.getPrice());
 
-        repository.save(existingBook);
-        return existingBook;
+        // 4. Persist and return the managed entity
+        return repository.save(existingBook);
     }
 
     @Transactional
@@ -103,7 +123,7 @@ public class LibraryManager{
                    double tolerance = 0.0001;
                    return repository.findBooksByPriceBetween(price - tolerance, price + tolerance);
                } catch (NumberFormatException e) {
-                   return List.of(); // or throw an IllegalArgumentException
+               throw new IllegalArgumentException("Invalid price format value:" + value);
                }
            default:
                throw new IllegalArgumentException("Invalid search type: " + type + ". Valid types: author, title, genre, price");
@@ -129,7 +149,7 @@ public class LibraryManager{
     }
 
     public Double getTotalLibraryValue() {
-        return repository.sumTotalOfPrice();
+        return repository.sumTotalOfPrice().orElse(0.0);
     }
 
     public Book findMostExpensiveBook(){

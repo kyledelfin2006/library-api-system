@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface BookRepository extends JpaRepository<Book, Long> {
@@ -23,6 +24,6 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     Book findTopByOrderByPriceDesc();
 
 
-    @Query("SELECT SUM(b.price) FROM Book b")
-    Double sumTotalOfPrice();
+   @Query("SELECT SUM(b.price) FROM Book b")
+   Optional<Double> sumTotalOfPrice();
 }

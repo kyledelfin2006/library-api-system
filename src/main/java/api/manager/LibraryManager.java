@@ -20,7 +20,7 @@ public class LibraryManager{
     }
 
     public List<Book> getAllBooks(){
-        return new ArrayList<Book>(repository.findAll());
+        return List.copyOf(repository.findAll());
     }
 
     public Book addBook(BookDTO input){
@@ -40,9 +40,7 @@ public class LibraryManager{
 
     @Transactional
     public Book patchBook(Long id, BookDTO updates) {
-        Book existingBook = repository.findById(id)
-                .orElseThrow(() -> new BookNotFoundException("Couldn't find book " + id + " ID"));
-
+        Book existingBook = findBookById(id);
 
         // Update only provided fields, If Null/Not given ignore.
         if (updates.getTitle() != null && !updates.getTitle().trim().isEmpty()) {
@@ -67,8 +65,7 @@ public class LibraryManager{
 
     @Transactional
     public Book replaceBook(Long id, BookDTO updates) {
-        Book existingBook = repository.findById(id)
-                .orElseThrow(() -> new BookNotFoundException("Couldn't find book " + id + " ID"));
+        Book existingBook = findBookById(id);
 
         existingBook.setTitle(updates.getTitle());
         existingBook.setAuthor(updates.getAuthor());
@@ -139,37 +136,6 @@ public class LibraryManager{
 
     public Book findMostExpensiveBook(){
         return repository.findTopByOrderByPriceDesc();
-    }
-
-
-    // Made public so API can use it for validation (works for partial due to .contains)
-    public boolean bookMatches(Book book, String type, String value) {
-        type = type.trim().toLowerCase();
-        value = value.trim().toLowerCase();
-
-        switch (type) {
-            case "author":
-                // Contains match (partial)
-                return book.getAuthor().toLowerCase().contains(value);
-
-            case "title":
-                // Contains match (partial)
-                return book.getTitle().toLowerCase().contains(value);
-
-            case "genre":
-                // Contains match (partial)
-                return book.getGenre().toLowerCase().contains(value);
-
-            case "price":
-                try {
-                    double priceValue = Double.parseDouble(value);
-                    return Math.abs(book.getPrice() - priceValue) < 0.0001; // Instead of concrete we use .abs for near accuracy
-                } catch (NumberFormatException e) {
-                    return false;
-                }
-            default:
-                return false;
-        }
     }
 }
 

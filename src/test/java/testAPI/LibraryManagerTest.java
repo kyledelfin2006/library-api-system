@@ -4,7 +4,6 @@ import api.exceptions.BookNotFoundException;
 import api.manager.LibraryManager;
 import api.models.Book;
 import api.models.BookDTO;
-import api.repository.BaseRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

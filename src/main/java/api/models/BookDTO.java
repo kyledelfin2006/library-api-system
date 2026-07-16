@@ -16,6 +16,7 @@ public class BookDTO {
     private String author;
 
     @NotBlank(message = "Genre cannot be empty")
+    @Size(max = 50, message = "Genre cannot exceed 50 characters")
     private String genre;
 
     @NotBlank(message = "Price cannot be empty")

@@ -19,7 +19,10 @@ public class Book {
     @Column(nullable = false, length = 50)
     private String author;
 
+    @Column(nullable = false, length = 50)
     private String genre;
+
+    @Column(nullable = false, precision =  10, scale = 2)
     private double price;
 
     // DEFAULT CONSTRUCTOR - REQUIRED for Jackson

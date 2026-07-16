@@ -3,7 +3,6 @@ package api.manager;
 import api.exceptions.BookNotFoundException;
 import api.models.Book;
 import api.models.BookDTO;
-import api.repository.BaseRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.*;

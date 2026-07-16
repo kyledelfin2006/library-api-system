@@ -3,25 +3,23 @@ package api.manager;
 import api.exceptions.BookNotFoundException;
 import api.models.Book;
 import api.models.BookDTO;
+import api.repository.BookRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
 @Service
 public class LibraryManager{
-    private final BaseRepository<Book> repository;
+    private final BookRepository repository;
 
 
-    public LibraryManager(BaseRepository<Book> repository) {
+    public LibraryManager(BookRepository repository) {
         this.repository = repository;
     }
 
     public List<Book> getAllBooks(){
-        return new ArrayList<Book>(repository.getAll());
-    }
-
-    public Book findBookById(Long id){
-        return repository.getAll().stream().filter(book -> book.getId().equals(id)).findFirst().orElse(null);
+        return new ArrayList<Book>(repository.findAll());
     }
 
     public Book addBook(BookDTO input){
@@ -32,15 +30,15 @@ public class LibraryManager{
                 input.getGenre(),
                 input.getPrice());
 
-        repository.add(newBook);
+        repository.save(newBook);
         return newBook;
     }
 
+    @Transactional
     public Book patchBook(Long id, BookDTO updates) {
-        Book existingBook = findBookById(id);
-        if (existingBook == null){
-            throw new BookNotFoundException("Couldn't find book of that ID");
-        }
+        Book existingBook = repository.findById(id)
+                .orElseThrow(() -> new BookNotFoundException("Couldn't find book " + id + " ID"));
+
 
         // Update only provided fields, If Null/Not given ignore.
         if (updates.getTitle() != null && !updates.getTitle().trim().isEmpty()) {
@@ -59,24 +57,21 @@ public class LibraryManager{
             }
             existingBook.setPrice(updates.getPrice());
         }
-        repository.update(existingBook);
+        repository.save(existingBook);
         return existingBook;
     }
 
+    @Transactional
     public Book replaceBook(Long id, BookDTO updates) {
-        Book existingBook = findBookById(id);
-        if (existingBook == null){
-            throw new BookNotFoundException("Couldn't find book of that ID");
-        }
-
-        validateBookInput(updates);
+        Book existingBook = repository.findById(id)
+                .orElseThrow(() -> new BookNotFoundException("Couldn't find book " + id + " ID"));
 
         existingBook.setTitle(updates.getTitle());
         existingBook.setAuthor(updates.getAuthor());
         existingBook.setGenre(updates.getGenre());
         existingBook.setPrice(updates.getPrice());
 
-        repository.update(existingBook);
+        repository.save(existingBook);
         return existingBook;
     }
 
@@ -159,21 +154,6 @@ public class LibraryManager{
         return mostExpensive;
     }
 
-    // ===== HELPER METHODS =====
-    private void validateBookInput(BookDTO input) {
-        if (input.getTitle() == null || input.getTitle().trim().isEmpty()) {
-            throw new IllegalArgumentException("Title cannot be empty or null");
-        }
-        if (input.getAuthor() == null || input.getAuthor().trim().isEmpty()) {
-            throw new IllegalArgumentException("Author cannot be empty or null");
-        }
-        if (input.getGenre() == null || input.getGenre().trim().isEmpty()) {
-            throw new IllegalArgumentException("Genre cannot be empty or null");
-        }
-        if (input.getPrice() == null || input.getPrice() <= 0) {
-            throw new IllegalArgumentException("Price cannot be empty or null and must be greater than 0");
-        }
-    }
 
     // Made public so API can use it for validation (works for partial due to .contains)
     public boolean bookMatches(Book book, String type, String value) {

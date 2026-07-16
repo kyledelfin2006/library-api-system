@@ -1,13 +1,24 @@
 package api.models;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
 
+@Entity
+@Table(name = "books")
 @JsonPropertyOrder({"id", "title", "author", "genre", "price"})
 public class Book {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // Matches Serial In Postgresql
     private Long id;
+
+    @Column(nullable = false, length = 100)
     private String title;
+
+    @Column(nullable = false, length = 50)
     private String author;
+
     private String genre;
     private double price;
 

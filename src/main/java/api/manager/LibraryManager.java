@@ -5,6 +5,7 @@ import api.models.Book;
 import api.models.BookDTO;
 import api.repository.BookRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -23,7 +24,6 @@ public class LibraryManager{
     }
 
     public Book addBook(BookDTO input){
-        validateBookInput(input); // Validate before Adding book
         Book newBook = new Book(
                 input.getTitle(),
                 input.getAuthor(),
@@ -32,6 +32,10 @@ public class LibraryManager{
 
         repository.save(newBook);
         return newBook;
+    }
+
+    public Book findBookById(Long id){
+        return repository.findById(id).orElseThrow(() -> new BookNotFoundException("Couldn't find book of ID: " + id ));
     }
 
     @Transactional
@@ -75,83 +79,66 @@ public class LibraryManager{
         return existingBook;
     }
 
-    public boolean deleteBookById(Long id) {
-        Book bookToRemove = findBookById(id);
-        if (bookToRemove != null) {
-            repository.remove(bookToRemove);
-            return true;
-        }
-        return false;
+    @Transactional
+    public void deleteBookById(Long id) {
+        Book bookToRemove = repository.findById(id)
+                .orElseThrow(() -> new BookNotFoundException("Couldn't find book " + id + " ID"));
+
+        repository.delete(bookToRemove);
     }
 
     public List<Book> getBooksWithinBudget(double maxPrice) {
-        return repository.getAll()
-                .stream()
-                .filter(b -> b.getPrice() <= maxPrice)
-                .toList();
+        return repository.findByPriceLessThanEqual(maxPrice);
     }
 
 
     public List<Book> searchBooks(String type, String value) {
-        List<Book> results = new ArrayList<>();
-        for (Book book : repository.getAll()) {
-            if (bookMatches(book, type, value)) {
-                results.add(book);
-            }
-        }
-        return results;
+       String formattedType = type.trim().toLowerCase();
+
+       switch (formattedType) {
+           case "author":
+               return repository.findByAuthorContainingIgnoreCase(value);
+           case "title":
+               return repository.findByTitleContainingIgnoreCase(value);
+           case "genre":
+               return repository.findByGenreContainingIgnoreCase(value);
+           case  "price":
+               try {
+                   double price = Double.parseDouble(value);
+                   double tolerance = 0.0001;
+                   return repository.findBooksByPriceBetween(price - tolerance, price + tolerance);
+               } catch (NumberFormatException e) {
+                   return List.of(); // or throw an IllegalArgumentException
+               }
+           default:
+               throw new IllegalArgumentException("Invalid search type: " + type + ". Valid types: author, title, genre, price");
+       }
     }
 
     public List<Book> getBooksSortedBy(String field) {
         if (field == null || field.trim().isEmpty()) {
-            return List.copyOf(repository.getAll());
+            return repository.findAll();
         }
 
-        List<Book> sortedCopy = new ArrayList<>(repository.getAll());
-        field = field.trim().toLowerCase();
+        String fieldName = field.trim().toLowerCase();
 
-        switch (field) {
-            case "title":
-                sortedCopy.sort(Comparator.comparing(Book::getTitle));
-                break;
-            case "author":
-                sortedCopy.sort(Comparator.comparing(Book::getAuthor));
-                break;
-            case "id":
-                sortedCopy.sort(Comparator.comparing(Book::getId));
-                break;
-            case "price":
-                sortedCopy.sort(Comparator.comparing(Book::getPrice));
-                break;
-            case "genre":
-                sortedCopy.sort(Comparator.comparing(Book::getGenre));
-                break;
+        // Validate allowed fields to avoid SQL injection through Sort.by()
+        Set<String> allowedFields = Set.of("title", "author", "id", "price", "genre");
+
+        if (!allowedFields.contains(fieldName)) {
+            throw new IllegalArgumentException("Invalid sort field: " + field);
         }
-        return sortedCopy;
+
+        Sort sort = Sort.by(fieldName).ascending();
+        return repository.findAll(sort);
     }
 
-    public double getTotalLibraryValue() {
-        double total = 0;
-        for (Book book : repository.getAll()) {
-            total += book.getPrice();
-        }
-        return total;
+    public Double getTotalLibraryValue() {
+        return repository.sumTotalOfPrice();
     }
 
     public Book findMostExpensiveBook(){
-        List<Book> allBooks = repository.getAll();
-
-        if (allBooks.isEmpty()) {
-            return null;
-        }
-
-        Book mostExpensive = allBooks.getFirst();
-        for (Book book : allBooks) {
-            if (book.getPrice() > mostExpensive.getPrice()) {
-                mostExpensive = book;
-            }
-        }
-        return mostExpensive;
+        return repository.findTopByOrderByPriceDesc();
     }
 
 

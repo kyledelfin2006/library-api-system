@@ -83,19 +83,13 @@
         @GetMapping("/books/{id}")
         public ResponseEntity<Book> getBookById(@PathVariable Long id) {
             Book book = manager.findBookById(id);
-            if (book == null) {
-                throw new BookNotFoundException("Book with ID " + id + " not found");
-            }
             return ResponseEntity.ok(book);
         }
 
         // Delete a book
         @DeleteMapping("/books/{id}")
         public ResponseEntity<ApiResponse<Void>> deleteBook(@PathVariable Long id) {
-            boolean deleted = manager.deleteBookById(id);
-            if (!deleted) {
-                throw new BookNotFoundException("Book with ID " + id + " not found");
-            }
+            manager.deleteBookById(id);
             return ResponseEntity.ok(new ApiResponse<>(true, "Book deleted successfully"));
         }
 

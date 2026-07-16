@@ -10,7 +10,7 @@ import org.springframework.data.annotation.Id;
 public class Book {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Matches Serial In Postgresql
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // Matches Serial In PostgreSQL
     private Long id;
 
     @Column(nullable = false, length = 100)
@@ -29,11 +29,6 @@ public class Book {
     public Book() {}
 
     public Book(String title, String author, String genre, double price) {
-        validate(title, "Title");
-        validate(author, "Author");
-        validate(genre, "Genre");
-        validatePrice(price);
-
         this.title = title;
         this.author = author;
         this.genre = genre;
@@ -53,18 +48,6 @@ public class Book {
     public void setGenre(String genre) { this.genre = genre; }
     public void setPrice(double price) { this.price = price; }
 
-    // Validators
-    private void validate(String value, String fieldName) {
-        if (value == null || value.trim().isEmpty()) {
-            throw new IllegalArgumentException(fieldName + " cannot be empty or null");
-        }
-    }
-
-    private void validatePrice(double value) {
-        if (value <= 0) {
-            throw new IllegalArgumentException("Error! Price must be greater than 0!");
-        }
-    }
 
     @Override
     public String toString() {

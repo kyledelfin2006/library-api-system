@@ -78,9 +78,7 @@ public class LibraryManager{
 
     @Transactional
     public void deleteBookById(Long id) {
-        Book bookToRemove = repository.findById(id)
-                .orElseThrow(() -> new BookNotFoundException("Couldn't find book " + id + " ID"));
-
+        Book bookToRemove = findBookById(id);
         repository.delete(bookToRemove);
     }
 

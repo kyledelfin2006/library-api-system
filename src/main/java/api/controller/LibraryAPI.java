@@ -27,7 +27,7 @@
 
         // ==================== ROUTES ====================
 
-        @GetMapping("/health")
+        @GetMapping("/books/health")
         public ResponseEntity<ApiResponse<String>> healthCheck() {
             return ResponseEntity.ok(new ApiResponse<>(true, "API is running"));
         }

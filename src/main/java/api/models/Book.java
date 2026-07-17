@@ -2,6 +2,8 @@ package api.models;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 
 @Entity
 @Table(name = "books")
@@ -12,15 +14,19 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.IDENTITY) // Matches Serial In PostgreSQL
     private Long id;
 
+    @NotNull(message = "Title cannot be null")
     @Column(nullable = false, length = 100)
     private String title;
 
+    @NotNull(message = "Author cannot be null")
     @Column(nullable = false, length = 50)
     private String author;
 
+    @NotNull(message = "Genre cannot be null")
     @Column(nullable = false, length = 50)
     private String genre;
 
+    @Positive(message = "Price must be greater than 0")
     @Column(nullable = false, precision =  10, scale = 2)
     private double price;
 

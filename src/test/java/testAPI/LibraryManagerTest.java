@@ -59,6 +59,16 @@ class BookServiceTest {
         verify(repository, times(1)).findAll();
     }
 
+    @Test
+    void getAllBooks_whenNoBooks_shouldReturnEmptyList() {
+        when(repository.findAll()).thenReturn(List.of());
+
+        List<Book> result = bookService.getAllBooks();
+
+        assertTrue(result.isEmpty());
+        verify(repository, times(1)).findAll();
+    }
+
     // ---------- addBook ----------
     @Test
     void addBook_shouldSaveAndReturnBook() {
@@ -115,9 +125,89 @@ class BookServiceTest {
     }
 
     @Test
+    void patchBook_shouldUpdateOnlyAuthorWhenOnlyAuthorProvided() {
+        Book existing = new Book("Old Title", "Old Author", "Old Genre", 10.0);
+        existing.setId(BOOK_ID);
+        when(repository.findById(BOOK_ID)).thenReturn(Optional.of(existing));
+
+        BookDTO updates = new BookDTO(null, "New Author", null, null);
+        when(repository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Book result = bookService.patchBook(BOOK_ID, updates);
+
+        assertEquals("Old Title", result.getTitle());
+        assertEquals("New Author", result.getAuthor());
+        assertEquals("Old Genre", result.getGenre());
+        assertEquals(10.0, result.getPrice());
+        verify(repository, times(1)).save(existing);
+    }
+
+    @Test
+    void patchBook_shouldUpdateOnlyGenreWhenOnlyGenreProvided() {
+        Book existing = new Book("Old Title", "Old Author", "Old Genre", 10.0);
+        existing.setId(BOOK_ID);
+        when(repository.findById(BOOK_ID)).thenReturn(Optional.of(existing));
+
+        BookDTO updates = new BookDTO(null, null, "New Genre", null);
+        when(repository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Book result = bookService.patchBook(BOOK_ID, updates);
+
+        assertEquals("Old Title", result.getTitle());
+        assertEquals("Old Author", result.getAuthor());
+        assertEquals("New Genre", result.getGenre());
+        assertEquals(10.0, result.getPrice());
+        verify(repository, times(1)).save(existing);
+    }
+
+    @Test
+    void patchBook_whenAllFieldsBlankOrNull_shouldLeaveBookUnchanged() {
+        Book existing = new Book("Old Title", "Old Author", "Old Genre", 10.0);
+        existing.setId(BOOK_ID);
+        when(repository.findById(BOOK_ID)).thenReturn(Optional.of(existing));
+
+        // Blank strings should be treated same as null (trim().isEmpty() branch)
+        BookDTO updates = new BookDTO("   ", "", "  ", null);
+        when(repository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Book result = bookService.patchBook(BOOK_ID, updates);
+
+        assertEquals("Old Title", result.getTitle());
+        assertEquals("Old Author", result.getAuthor());
+        assertEquals("Old Genre", result.getGenre());
+        assertEquals(10.0, result.getPrice());
+        verify(repository, times(1)).save(existing);
+    }
+
+    @Test
+    void patchBook_whenPriceIsNull_shouldLeavePriceUnchanged() {
+        Book existing = new Book("Old Title", "Old Author", "Old Genre", 10.0);
+        existing.setId(BOOK_ID);
+        when(repository.findById(BOOK_ID)).thenReturn(Optional.of(existing));
+
+        BookDTO updates = new BookDTO("New Title", null, null, null);
+        when(repository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Book result = bookService.patchBook(BOOK_ID, updates);
+
+        assertEquals("New Title", result.getTitle());
+        assertEquals(10.0, result.getPrice()); // unchanged since price update was null
+        verify(repository, times(1)).save(existing);
+    }
+
+    @Test
     void patchBook_whenPriceIsZeroOrNegative_shouldThrowIllegalArgumentException() {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
         BookDTO updates = new BookDTO(null, null, null, -5.0);
+
+        assertThrows(IllegalArgumentException.class, () -> bookService.patchBook(BOOK_ID, updates));
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void patchBook_whenPriceIsExactlyZero_shouldThrowIllegalArgumentException() {
+        when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
+        BookDTO updates = new BookDTO(null, null, null, 0.0);
 
         assertThrows(IllegalArgumentException.class, () -> bookService.patchBook(BOOK_ID, updates));
         verify(repository, never()).save(any());
@@ -149,9 +239,35 @@ class BookServiceTest {
     }
 
     @Test
+    void replaceBook_whenDtoIsNull_shouldThrowIllegalArgumentException() {
+        when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
+
+        assertThrows(IllegalArgumentException.class, () -> bookService.replaceBook(BOOK_ID, null));
+        verify(repository, never()).save(any());
+    }
+
+    @Test
     void replaceBook_whenDtoHasNullTitle_shouldThrowIllegalArgumentException() {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
         BookDTO invalidDto = new BookDTO(null, "Author", "Genre", 20.0);
+
+        assertThrows(IllegalArgumentException.class, () -> bookService.replaceBook(BOOK_ID, invalidDto));
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void replaceBook_whenDtoHasEmptyTitle_shouldThrowIllegalArgumentException() {
+        when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
+        BookDTO invalidDto = new BookDTO("   ", "Author", "Genre", 20.0);
+
+        assertThrows(IllegalArgumentException.class, () -> bookService.replaceBook(BOOK_ID, invalidDto));
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void replaceBook_whenDtoHasNullAuthor_shouldThrowIllegalArgumentException() {
+        when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
+        BookDTO invalidDto = new BookDTO("Title", null, "Genre", 20.0);
 
         assertThrows(IllegalArgumentException.class, () -> bookService.replaceBook(BOOK_ID, invalidDto));
         verify(repository, never()).save(any());
@@ -167,9 +283,45 @@ class BookServiceTest {
     }
 
     @Test
+    void replaceBook_whenDtoHasNullGenre_shouldThrowIllegalArgumentException() {
+        when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
+        BookDTO invalidDto = new BookDTO("Title", "Author", null, 20.0);
+
+        assertThrows(IllegalArgumentException.class, () -> bookService.replaceBook(BOOK_ID, invalidDto));
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void replaceBook_whenDtoHasEmptyGenre_shouldThrowIllegalArgumentException() {
+        when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
+        BookDTO invalidDto = new BookDTO("Title", "Author", "  ", 20.0);
+
+        assertThrows(IllegalArgumentException.class, () -> bookService.replaceBook(BOOK_ID, invalidDto));
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void replaceBook_whenDtoHasNullPrice_shouldThrowIllegalArgumentException() {
+        when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
+        BookDTO invalidDto = new BookDTO("Title", "Author", "Genre", null);
+
+        assertThrows(IllegalArgumentException.class, () -> bookService.replaceBook(BOOK_ID, invalidDto));
+        verify(repository, never()).save(any());
+    }
+
+    @Test
     void replaceBook_whenDtoHasPriceZero_shouldThrowIllegalArgumentException() {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
         BookDTO invalidDto = new BookDTO("Title", "Author", "Genre", 0.0);
+
+        assertThrows(IllegalArgumentException.class, () -> bookService.replaceBook(BOOK_ID, invalidDto));
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void replaceBook_whenDtoHasNegativePrice_shouldThrowIllegalArgumentException() {
+        when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
+        BookDTO invalidDto = new BookDTO("Title", "Author", "Genre", -10.0);
 
         assertThrows(IllegalArgumentException.class, () -> bookService.replaceBook(BOOK_ID, invalidDto));
         verify(repository, never()).save(any());
@@ -222,6 +374,17 @@ class BookServiceTest {
         when(repository.findByAuthorContainingIgnoreCase("Bloch")).thenReturn(expected);
 
         List<Book> result = bookService.searchBooks("author", "Bloch");
+
+        assertEquals(expected, result);
+        verify(repository, times(1)).findByAuthorContainingIgnoreCase("Bloch");
+    }
+
+    @Test
+    void searchBooks_byAuthor_isCaseAndWhitespaceInsensitiveForType() {
+        List<Book> expected = List.of(sampleBook);
+        when(repository.findByAuthorContainingIgnoreCase("Bloch")).thenReturn(expected);
+
+        List<Book> result = bookService.searchBooks("  AUTHOR  ", "Bloch");
 
         assertEquals(expected, result);
         verify(repository, times(1)).findByAuthorContainingIgnoreCase("Bloch");
@@ -282,6 +445,17 @@ class BookServiceTest {
 
         assertEquals(expected, result);
         verify(repository, times(1)).findAll(Sort.by("title").ascending());
+    }
+
+    @Test
+    void getBooksSortedBy_validFieldMixedCaseWithWhitespace_shouldReturnSortedList() {
+        List<Book> expected = List.of(sampleBook);
+        when(repository.findAll(Sort.by("price").ascending())).thenReturn(expected);
+
+        List<Book> result = bookService.getBooksSortedBy("  PRICE  ");
+
+        assertEquals(expected, result);
+        verify(repository, times(1)).findAll(Sort.by("price").ascending());
     }
 
     @Test

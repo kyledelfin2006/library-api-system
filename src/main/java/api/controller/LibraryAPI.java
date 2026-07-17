@@ -9,9 +9,9 @@
     import org.springframework.http.HttpStatus;
     import org.springframework.http.ResponseEntity;
     import org.springframework.web.bind.annotation.*;
-    import java.util.HashMap;
     import java.util.List;
     import java.util.Map;
+    import java.util.concurrent.ConcurrentHashMap;
 
 
     @RestController
@@ -34,7 +34,7 @@
 
         @GetMapping("/books/stats")
         public ResponseEntity<Map<String,Object>> getStats() {
-            Map<String, Object> stats = new HashMap<>();
+            Map<String, Object> stats = new ConcurrentHashMap<>();
             stats.put("totalBooks", manager.getAllBooks().size());
             stats.put("totalValue", manager.getTotalLibraryValue());
 

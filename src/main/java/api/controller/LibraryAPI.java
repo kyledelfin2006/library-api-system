@@ -1,6 +1,5 @@
     package api.controller;
 
-    import api.exceptions.BookNotFoundException;
     import api.models.Book;
     import api.models.BookDTO;
     import api.responses.ApiResponse;

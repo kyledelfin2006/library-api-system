@@ -29,6 +29,7 @@ class LibraryManagerTest {
     @InjectMocks
     private LibraryManager libraryManager;
 
+    // Mock setups
     private Book sampleBook;
     private BookDTO sampleBookDTO;
     private final Long BOOK_ID = 1L;

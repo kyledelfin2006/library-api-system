@@ -50,4 +50,21 @@ class BookTest {
         assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("Price must be greater than 0")),
                 "Missing validation error for price less than or equal to 0");
     }
+
+    @Test
+    void testValidBookDtoPassesValidation() {
+        // 1. Set up Validator
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        Validator validator = factory.getValidator();
+
+        // 2. Create a fully valid DTO
+        BookDTO validDto = new BookDTO("The Hobbit", "J.R.R. Tolkien", "Fantasy", 12.99);
+
+        // 3. Validate
+        Set<ConstraintViolation<BookDTO>> violations = validator.validate(validDto);
+
+        // 4. Assert that NO violations exist
+        assertTrue(violations.isEmpty(), "Expected zero validation errors for a valid DTO, but got: " + violations);
+    }
+
 }

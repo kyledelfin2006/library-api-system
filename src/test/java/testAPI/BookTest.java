@@ -1,7 +1,14 @@
 package testAPI;
 
 import api.models.Book;
+import api.models.BookDTO;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.Test;
+import java.util.Set;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class BookTest {
@@ -20,32 +27,27 @@ class BookTest {
     }
 
     @Test
-    void testEmptyTitleThrowsException() {
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            new Book("", "Orwell", "Fiction", 15.99);
-        });
-        assertTrue(exception.getMessage().contains("Title cannot be empty"));
-    }
+    void testBookDtoValidationConstraints() {
+        // 1. Set up the Jakarta Validator
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        Validator validator = factory.getValidator();
 
-    @Test
-    void testNullAuthorThrowsException() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            new Book("1984", null, "Fiction", 15.99);
-        });
-    }
+        // 2. Create an INVALID DTO (empty title, null author, negative price)
+        BookDTO invalidDto = new BookDTO("", null, "Fiction", -5.0);
 
-    @Test
-    void testNegativePriceThrowsException() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            new Book("1984", "Orwell", "Fiction", -5.00);
-        });
-    }
+        // 3. Run the validation
+        Set<ConstraintViolation<BookDTO>> violations = validator.validate(invalidDto);
 
-    @Test
-    void testZeroPriceThrowsException() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            new Book("1984", "Orwell", "Fiction", 0);
-        });
+        // 4. Assert that validation failed
+        assertFalse(violations.isEmpty(), "Expected validation errors but got none");
+
+        // 5. (Optional) Check that the specific error messages are present
+        // This is good for ensuring the right rules fired.
+        assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("Title cannot be empty")),
+                "Missing validation error for empty title");
+        assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("Author cannot be empty")),
+                "Missing validation error for null author");
+        assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("Price must be greater than 0")),
+                "Missing validation error for price less than or equal to 0");
     }
-    // ID generation is now handled by PostgreSQL, not the constructor.
 }

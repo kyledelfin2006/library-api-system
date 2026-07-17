@@ -3,7 +3,7 @@
     import api.models.Book;
     import api.models.BookDTO;
     import api.responses.ApiResponse;
-    import api.manager.LibraryManager;
+    import api.manager.BookService;
     import jakarta.validation.Valid;
     import org.springframework.beans.factory.annotation.Autowired;
     import org.springframework.http.HttpStatus;
@@ -18,10 +18,10 @@
     @RequestMapping("/api")
     public class LibraryAPI {
 
-        private final LibraryManager manager;
+        private final BookService manager;
 
         @Autowired
-        public LibraryAPI(LibraryManager manager) {
+        public LibraryAPI(BookService manager) {
             this.manager = manager;
         }
 

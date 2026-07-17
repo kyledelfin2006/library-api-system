@@ -11,11 +11,11 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 
 @Service
-public class LibraryManager{
+public class BookService {
     private final BookRepository repository;
 
 
-    public LibraryManager(BookRepository repository) {
+    public BookService(BookRepository repository) {
         this.repository = repository;
     }
 

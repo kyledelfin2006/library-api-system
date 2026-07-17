@@ -1,7 +1,7 @@
 package testAPI;
 
 import api.exceptions.BookNotFoundException;
-import api.manager.LibraryManager;
+import api.manager.BookService;
 import api.models.Book;
 import api.models.BookDTO;
 import api.repository.BookRepository;
@@ -21,13 +21,13 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class LibraryManagerTest {
+class BookServiceTest {
 
     @Mock
     private BookRepository repository;
 
     @InjectMocks
-    private LibraryManager libraryManager;
+    private BookService bookService;
 
     // Mock setups
     private Book sampleBook;
@@ -52,7 +52,7 @@ class LibraryManagerTest {
         List<Book> books = Arrays.asList(sampleBook, new Book("Book2", "Author2", "Genre2", 20.0));
         when(repository.findAll()).thenReturn(books);
 
-        List<Book> result = libraryManager.getAllBooks();
+        List<Book> result = bookService.getAllBooks();
 
         assertEquals(2, result.size());
         assertTrue(result.contains(sampleBook));
@@ -64,7 +64,7 @@ class LibraryManagerTest {
     void addBook_shouldSaveAndReturnBook() {
         when(repository.save(any(Book.class))).thenReturn(sampleBook);
 
-        Book result = libraryManager.addBook(sampleBookDTO);
+        Book result = bookService.addBook(sampleBookDTO);
 
         assertNotNull(result);
         assertEquals(TITLE, result.getTitle());
@@ -79,7 +79,7 @@ class LibraryManagerTest {
     void findBookById_whenBookExists_shouldReturnBook() {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
 
-        Book result = libraryManager.findBookById(BOOK_ID);
+        Book result = bookService.findBookById(BOOK_ID);
 
         assertEquals(sampleBook, result);
         verify(repository, times(1)).findById(BOOK_ID);
@@ -89,7 +89,7 @@ class LibraryManagerTest {
     void findBookById_whenBookNotFound_shouldThrowBookNotFoundException() {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.empty());
 
-        assertThrows(BookNotFoundException.class, () -> libraryManager.findBookById(BOOK_ID));
+        assertThrows(BookNotFoundException.class, () -> bookService.findBookById(BOOK_ID));
         verify(repository, times(1)).findById(BOOK_ID);
     }
 
@@ -105,7 +105,7 @@ class LibraryManagerTest {
         BookDTO updates = new BookDTO("New Title", null, null, 30.0);
         when(repository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Book result = libraryManager.patchBook(BOOK_ID, updates);
+        Book result = bookService.patchBook(BOOK_ID, updates);
 
         assertEquals("New Title", result.getTitle());
         assertEquals("Old Author", result.getAuthor());  // unchanged
@@ -119,7 +119,7 @@ class LibraryManagerTest {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
         BookDTO updates = new BookDTO(null, null, null, -5.0);
 
-        assertThrows(IllegalArgumentException.class, () -> libraryManager.patchBook(BOOK_ID, updates));
+        assertThrows(IllegalArgumentException.class, () -> bookService.patchBook(BOOK_ID, updates));
         verify(repository, never()).save(any());
     }
 
@@ -128,7 +128,7 @@ class LibraryManagerTest {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.empty());
         BookDTO updates = new BookDTO("New", null, null, 20.0);
 
-        assertThrows(BookNotFoundException.class, () -> libraryManager.patchBook(BOOK_ID, updates));
+        assertThrows(BookNotFoundException.class, () -> bookService.patchBook(BOOK_ID, updates));
         verify(repository, never()).save(any());
     }
 
@@ -139,7 +139,7 @@ class LibraryManagerTest {
         BookDTO newData = new BookDTO("New Title", "New Author", "New Genre", 99.99);
         when(repository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Book result = libraryManager.replaceBook(BOOK_ID, newData);
+        Book result = bookService.replaceBook(BOOK_ID, newData);
 
         assertEquals("New Title", result.getTitle());
         assertEquals("New Author", result.getAuthor());
@@ -153,7 +153,7 @@ class LibraryManagerTest {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
         BookDTO invalidDto = new BookDTO(null, "Author", "Genre", 20.0);
 
-        assertThrows(IllegalArgumentException.class, () -> libraryManager.replaceBook(BOOK_ID, invalidDto));
+        assertThrows(IllegalArgumentException.class, () -> bookService.replaceBook(BOOK_ID, invalidDto));
         verify(repository, never()).save(any());
     }
 
@@ -162,7 +162,7 @@ class LibraryManagerTest {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
         BookDTO invalidDto = new BookDTO("Title", "", "Genre", 20.0);
 
-        assertThrows(IllegalArgumentException.class, () -> libraryManager.replaceBook(BOOK_ID, invalidDto));
+        assertThrows(IllegalArgumentException.class, () -> bookService.replaceBook(BOOK_ID, invalidDto));
         verify(repository, never()).save(any());
     }
 
@@ -171,7 +171,7 @@ class LibraryManagerTest {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
         BookDTO invalidDto = new BookDTO("Title", "Author", "Genre", 0.0);
 
-        assertThrows(IllegalArgumentException.class, () -> libraryManager.replaceBook(BOOK_ID, invalidDto));
+        assertThrows(IllegalArgumentException.class, () -> bookService.replaceBook(BOOK_ID, invalidDto));
         verify(repository, never()).save(any());
     }
 
@@ -180,7 +180,7 @@ class LibraryManagerTest {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.empty());
         BookDTO dto = new BookDTO("Title", "Author", "Genre", 20.0);
 
-        assertThrows(BookNotFoundException.class, () -> libraryManager.replaceBook(BOOK_ID, dto));
+        assertThrows(BookNotFoundException.class, () -> bookService.replaceBook(BOOK_ID, dto));
         verify(repository, never()).save(any());
     }
 
@@ -190,7 +190,7 @@ class LibraryManagerTest {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
         doNothing().when(repository).delete(any(Book.class));
 
-        libraryManager.deleteBookById(BOOK_ID);
+        bookService.deleteBookById(BOOK_ID);
 
         verify(repository, times(1)).delete(sampleBook);
     }
@@ -199,7 +199,7 @@ class LibraryManagerTest {
     void deleteBookById_whenBookNotFound_shouldThrowBookNotFoundException() {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.empty());
 
-        assertThrows(BookNotFoundException.class, () -> libraryManager.deleteBookById(BOOK_ID));
+        assertThrows(BookNotFoundException.class, () -> bookService.deleteBookById(BOOK_ID));
         verify(repository, never()).delete(any());
     }
 
@@ -209,7 +209,7 @@ class LibraryManagerTest {
         List<Book> expected = Arrays.asList(sampleBook, new Book("Cheap", "Author", "Genre", 10.0));
         when(repository.findByPriceLessThanEqual(30.0)).thenReturn(expected);
 
-        List<Book> result = libraryManager.getBooksWithinBudget(30.0);
+        List<Book> result = bookService.getBooksWithinBudget(30.0);
 
         assertEquals(2, result.size());
         verify(repository, times(1)).findByPriceLessThanEqual(30.0);
@@ -221,7 +221,7 @@ class LibraryManagerTest {
         List<Book> expected = List.of(sampleBook);
         when(repository.findByAuthorContainingIgnoreCase("Bloch")).thenReturn(expected);
 
-        List<Book> result = libraryManager.searchBooks("author", "Bloch");
+        List<Book> result = bookService.searchBooks("author", "Bloch");
 
         assertEquals(expected, result);
         verify(repository, times(1)).findByAuthorContainingIgnoreCase("Bloch");
@@ -232,7 +232,7 @@ class LibraryManagerTest {
         List<Book> expected = List.of(sampleBook);
         when(repository.findByTitleContainingIgnoreCase("Effective")).thenReturn(expected);
 
-        List<Book> result = libraryManager.searchBooks("title", "Effective");
+        List<Book> result = bookService.searchBooks("title", "Effective");
 
         assertEquals(expected, result);
         verify(repository, times(1)).findByTitleContainingIgnoreCase("Effective");
@@ -243,7 +243,7 @@ class LibraryManagerTest {
         List<Book> expected = List.of(sampleBook);
         when(repository.findByGenreContainingIgnoreCase("Program")).thenReturn(expected);
 
-        List<Book> result = libraryManager.searchBooks("genre", "Program");
+        List<Book> result = bookService.searchBooks("genre", "Program");
 
         assertEquals(expected, result);
         verify(repository, times(1)).findByGenreContainingIgnoreCase("Program");
@@ -254,7 +254,7 @@ class LibraryManagerTest {
         List<Book> expected = List.of(sampleBook);
         when(repository.findBooksByPriceBetween(44.9999, 45.0001)).thenReturn(expected);
 
-        List<Book> result = libraryManager.searchBooks("price", "45.0");
+        List<Book> result = bookService.searchBooks("price", "45.0");
 
         assertEquals(expected, result);
         verify(repository, times(1)).findBooksByPriceBetween(44.9999, 45.0001);
@@ -262,13 +262,13 @@ class LibraryManagerTest {
 
     @Test
     void searchBooks_byPrice_withInvalidNumber_shouldThrowIllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class, () -> libraryManager.searchBooks("price", "not-a-number"));
+        assertThrows(IllegalArgumentException.class, () -> bookService.searchBooks("price", "not-a-number"));
         verify(repository, never()).findBooksByPriceBetween(anyDouble(), anyDouble());
     }
 
     @Test
     void searchBooks_withInvalidType_shouldThrowIllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class, () -> libraryManager.searchBooks("invalid", "value"));
+        assertThrows(IllegalArgumentException.class, () -> bookService.searchBooks("invalid", "value"));
         verify(repository, never()).findByAuthorContainingIgnoreCase(anyString());
     }
 
@@ -278,7 +278,7 @@ class LibraryManagerTest {
         List<Book> expected = List.of(sampleBook);
         when(repository.findAll(Sort.by("title").ascending())).thenReturn(expected);
 
-        List<Book> result = libraryManager.getBooksSortedBy("title");
+        List<Book> result = bookService.getBooksSortedBy("title");
 
         assertEquals(expected, result);
         verify(repository, times(1)).findAll(Sort.by("title").ascending());
@@ -286,7 +286,7 @@ class LibraryManagerTest {
 
     @Test
     void getBooksSortedBy_invalidField_shouldThrowIllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class, () -> libraryManager.getBooksSortedBy("invalidField"));
+        assertThrows(IllegalArgumentException.class, () -> bookService.getBooksSortedBy("invalidField"));
         verify(repository, never()).findAll(any(Sort.class));
     }
 
@@ -295,7 +295,7 @@ class LibraryManagerTest {
         List<Book> expected = List.of(sampleBook);
         when(repository.findAll()).thenReturn(expected);
 
-        List<Book> result = libraryManager.getBooksSortedBy(null);
+        List<Book> result = bookService.getBooksSortedBy(null);
 
         assertEquals(expected, result);
         verify(repository, times(1)).findAll();
@@ -307,7 +307,7 @@ class LibraryManagerTest {
         List<Book> expected = List.of(sampleBook);
         when(repository.findAll()).thenReturn(expected);
 
-        List<Book> result = libraryManager.getBooksSortedBy("   ");
+        List<Book> result = bookService.getBooksSortedBy("   ");
 
         assertEquals(expected, result);
         verify(repository, times(1)).findAll();
@@ -319,7 +319,7 @@ class LibraryManagerTest {
     void getTotalLibraryValue_whenBooksExist_shouldReturnSum() {
         when(repository.sumTotalOfPrice()).thenReturn(Optional.of(150.0));
 
-        Double total = libraryManager.getTotalLibraryValue();
+        Double total = bookService.getTotalLibraryValue();
 
         assertEquals(150.0, total);
         verify(repository, times(1)).sumTotalOfPrice();
@@ -329,7 +329,7 @@ class LibraryManagerTest {
     void getTotalLibraryValue_whenNoBooks_shouldReturnZero() {
         when(repository.sumTotalOfPrice()).thenReturn(Optional.empty());
 
-        Double total = libraryManager.getTotalLibraryValue();
+        Double total = bookService.getTotalLibraryValue();
 
         assertEquals(0.0, total);
         verify(repository, times(1)).sumTotalOfPrice();
@@ -340,7 +340,7 @@ class LibraryManagerTest {
     void findMostExpensiveBook_shouldReturnBookWithHighestPrice() {
         when(repository.findTopByOrderByPriceDesc()).thenReturn(sampleBook);
 
-        Book result = libraryManager.findMostExpensiveBook();
+        Book result = bookService.findMostExpensiveBook();
 
         assertEquals(sampleBook, result);
         verify(repository, times(1)).findTopByOrderByPriceDesc();
@@ -350,7 +350,7 @@ class LibraryManagerTest {
     void findMostExpensiveBook_whenNoBooks_shouldReturnNull() {
         when(repository.findTopByOrderByPriceDesc()).thenReturn(null);
 
-        Book result = libraryManager.findMostExpensiveBook();
+        Book result = bookService.findMostExpensiveBook();
 
         assertNull(result);
         verify(repository, times(1)).findTopByOrderByPriceDesc();

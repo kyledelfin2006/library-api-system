@@ -16,12 +16,12 @@
 
     @RestController
     @RequestMapping("/api")
-    public class LibraryAPI {
+    public class BookAPI {
 
         private final BookService manager;
 
         @Autowired
-        public LibraryAPI(BookService manager) {
+        public BookAPI(BookService manager) {
             this.manager = manager;
         }
 

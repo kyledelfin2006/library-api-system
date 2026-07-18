@@ -59,14 +59,9 @@
         }
 
         @GetMapping("/books/budget")
-        public ResponseEntity<List<Book>> budgetBooks(@RequestParam String maxPrice) {
-            try {
-                double maxedPrice = Double.parseDouble(maxPrice);
-                List<Book> affordableBooks = manager.getBooksWithinBudget(maxedPrice);
+        public ResponseEntity<List<Book>> budgetBooks(@RequestParam double maxPrice) {
+                List<Book> affordableBooks = manager.getBooksWithinBudget(maxPrice);
                 return ResponseEntity.ok(affordableBooks);
-            } catch (NumberFormatException e) {
-                throw new  IllegalArgumentException("Invalid Number: Max Price must be a valid number");
-            }
         }
 
 

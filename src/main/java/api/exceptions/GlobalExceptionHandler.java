@@ -104,7 +104,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(SQLException.class)
     public ResponseEntity<ErrorResponse> handleStorageError(SQLException ex) {
         logger.error("SQL error occurred", ex);
-        ErrorResponse error = new ErrorResponse("SQL error", ex.getMessage(), 500);
+        ErrorResponse error = new ErrorResponse("Unexpected SQL error", ex.getMessage(), 500);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 

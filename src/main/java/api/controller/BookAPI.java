@@ -107,7 +107,7 @@
         @PatchMapping("/books/{id}")
         public ResponseEntity<ApiResponse<Book>> patchBook(
                 @PathVariable Long id,
-                @RequestBody BookDTO updates) {
+              @Valid  @RequestBody BookDTO updates) {
 
             Book updated = manager.patchBook(id, updates);
             return ResponseEntity.ok(new ApiResponse<>(true, "Book updated successfully", updated));

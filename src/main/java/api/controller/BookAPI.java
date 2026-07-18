@@ -35,7 +35,7 @@
         @GetMapping("/books/stats")
         public ResponseEntity<Map<String,Object>> getStats() {
             Map<String, Object> stats = new ConcurrentHashMap<>();
-            stats.put("totalBooks", manager.getAllBooks().size());
+            stats.put("totalBooks", manager.countBooks());
             stats.put("totalValue", manager.getTotalLibraryValue());
 
             Book mostExpensive = manager.findMostExpensiveBook();

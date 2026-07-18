@@ -152,6 +152,10 @@ public class BookService {
         return repository.sumTotalOfPrice().orElse(0.0);
     }
 
+    public Long countBooks(){
+        return repository.count();
+    }
+
     public Book findMostExpensiveBook(){
         return repository.findTopByOrderByPriceDesc();
     }

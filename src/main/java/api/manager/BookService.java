@@ -67,7 +67,7 @@ public class BookService {
     @Transactional
     public Book replaceBook(Long id, BookDTO updates) {
         // 1. Fetch the existing book (throws 404 if not found)
-        Book existingBook = findBookById(id);
+        Book existingBook = findBookById(id); // Loaded from DB
 
         // 2. Validate that the DTO contains all required fields
         //    (Even though @Valid in the controller ensures this, we keep a defensive check.)

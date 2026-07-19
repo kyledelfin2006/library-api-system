@@ -60,7 +60,6 @@
                 return ResponseEntity.ok(affordableBooks);
         }
 
-
         // Add a new book (validated)
         @PostMapping("/books")
         public ResponseEntity<ApiResponse<Book>> addBook(@Valid @RequestBody BookDTO input) {

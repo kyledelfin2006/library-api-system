@@ -16,8 +16,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
-import java.sql.SQLException;
-
 /**
  * Global exception handler for REST controllers.
  * Converts exceptions to standardized JSON error responses.
@@ -112,6 +110,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 
+    /**
+     *  Handler for errors when request can't be processed as it violates with the current state of the targeted resource
+     *  Generic message in details over internal database exception for safety
+     * @param ex the exception
+     * @return 409 Conflict with server state error
+     */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
         logger.warn("Data integrity violation", ex);

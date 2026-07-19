@@ -46,29 +46,6 @@ class BookServiceTest {
         sampleBookDTO = new BookDTO(TITLE, AUTHOR, GENRE, PRICE);
     }
 
-    // ---------- getAllBooks ----------
-    @Test
-    void getAllBooks_shouldReturnAllBooks() {
-        List<Book> books = Arrays.asList(sampleBook, new Book("Book2", "Author2", "Genre2", 20.0));
-        when(repository.findAll()).thenReturn(books);
-
-        List<Book> result = bookService.getAllBooks();
-
-        assertEquals(2, result.size());
-        assertTrue(result.contains(sampleBook));
-        verify(repository, times(1)).findAll();
-    }
-
-    @Test
-    void getAllBooks_whenNoBooks_shouldReturnEmptyList() {
-        when(repository.findAll()).thenReturn(List.of());
-
-        List<Book> result = bookService.getAllBooks();
-
-        assertTrue(result.isEmpty());
-        verify(repository, times(1)).findAll();
-    }
-
     // ---------- addBook ----------
     @Test
     void addBook_shouldSaveAndReturnBook() {

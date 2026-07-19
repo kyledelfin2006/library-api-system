@@ -4,6 +4,8 @@ import api.responses.ErrorResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -97,15 +99,25 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handles storage-related errors (e.g., file I/O failures).
+     *  Handler for errors when executing a data-related operation, SQL statement, database connection
+     *  Generic message in details over internal database exception for safety
      * @param ex the exception
      * @return 500 Internal Server Error
      */
-    @ExceptionHandler(SQLException.class)
-    public ResponseEntity<ErrorResponse> handleStorageError(SQLException ex) {
-        logger.error("SQL error occurred", ex);
-        ErrorResponse error = new ErrorResponse("Unexpected SQL error", ex.getMessage(), 500);
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<ErrorResponse> handleDataAccessError(DataAccessException ex) {
+        logger.error("Data Access error occurred", ex);
+        ErrorResponse error = new ErrorResponse("DataAccess error",
+                "An unexpected error occurred while trying to access the database", 500);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        logger.warn("Data integrity violation", ex);
+        ErrorResponse error = new ErrorResponse("Data integrity violation",
+                "The operation would violate a database constraint", 409);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
     /**

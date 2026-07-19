@@ -50,10 +50,6 @@
                 @RequestParam String type,
                 @RequestParam String value) {
 
-            if (!type.matches("(?i)author|title|genre|price")) {
-                throw new IllegalArgumentException("Invalid search type. Use: author, title, genre, or price");
-            }
-
             List<Book> foundBooks = manager.searchBooks(type, value);
             return ResponseEntity.ok(foundBooks);
         }

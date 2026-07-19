@@ -106,7 +106,6 @@ public class BookService {
         return repository.findByPriceLessThanEqual(maxPrice);
     }
 
-
     public List<Book> searchBooks(String type, String value) {
        String formattedType = type.trim().toLowerCase();
 

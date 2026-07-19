@@ -23,6 +23,7 @@ public class BookService {
         return List.copyOf(repository.findAll());
     }
 
+    @Transactional
     public Book addBook(BookDTO input){
         Book newBook = new Book(
                 input.getTitle(),

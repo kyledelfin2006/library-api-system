@@ -5,6 +5,8 @@ import api.models.Book;
 import api.models.BookDTO;
 import api.repository.BookRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -19,8 +21,8 @@ public class BookService {
         this.repository = repository;
     }
 
-    public List<Book> getAllBooks(){
-        return List.copyOf(repository.findAll());
+    public Page<Book> getBooks(Pageable pageable){
+        return repository.findAll(pageable);
     }
 
     @Transactional

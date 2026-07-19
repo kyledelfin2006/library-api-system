@@ -12,6 +12,9 @@
     import java.util.List;
     import java.util.Map;
     import java.util.concurrent.ConcurrentHashMap;
+    import org.springframework.data.domain.Page;
+    import org.springframework.data.domain.Pageable;
+    import org.springframework.data.web.PageableDefault;
 
 
     @RestController
@@ -83,8 +86,10 @@
         }
 
         @GetMapping("/books")
-        public ResponseEntity<List<Book>> getAllBooks() {
-            return ResponseEntity.ok(manager.getAllBooks());
+        public ResponseEntity<Page<Book>> getAllBooks(
+               @PageableDefault(size = 10, sort = "id") Pageable pageable) {
+            Page<Book> page = manager.getBooks(pageable);
+            return ResponseEntity.ok(page);
         }
 
         @GetMapping("/books/sorted")

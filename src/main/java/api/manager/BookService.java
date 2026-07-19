@@ -124,7 +124,7 @@ public class BookService {
                } catch (NumberFormatException e) {
                throw new IllegalArgumentException("Invalid price format value:" + value);
                }
-           default:
+           default: // Handler for invalid types
                throw new IllegalArgumentException("Invalid search type: " + type + ". Valid types: author, title, genre, price");
        }
     }

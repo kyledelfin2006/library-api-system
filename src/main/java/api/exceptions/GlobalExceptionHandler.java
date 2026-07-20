@@ -18,9 +18,11 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 /**
- * Global (Project Wide) exception handler for REST controllers.
- *
- * <p>Converts exceptions to standardized JSON error responses.
+ * Global exception handler for REST controllers.
+ * <p>
+ * Intercepts exceptions thrown across the application and converts them into
+ * standardized {@link ErrorResponse} JSON objects with appropriate HTTP status codes.
+ * </p>
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -28,10 +30,10 @@ public class GlobalExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     /**
-     * Handles IllegalArgumentException thrown when input validation fails.
-     * @param ex the exception
-     * @return a {@code ResponseEntity} with HTTP status 400 (Bad Request) and a specific
-     * error message indicating the invalid parameter type
+     * Handles {@link IllegalArgumentException} for invalid input arguments.
+     *
+     * @param ex the exception containing the invalid argument details
+     * @return HTTP 400 Bad Request with a validation error response
      */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
@@ -41,10 +43,10 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handles malformed JSON bodies in requests.
-     * @param ex the exception
-     * @return a {@code ResponseEntity} with HTTP status 400 (Bad Request) and a specific
-     * error message indicating the invalid parameter type
+     * Handles malformed JSON in request bodies.
+     *
+     * @param ex the exception thrown when JSON cannot be parsed
+     * @return HTTP 400 Bad Request with a clear JSON format error message
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleJsonParseError(HttpMessageNotReadableException ex) {
@@ -53,10 +55,13 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handles Validation errors in @Valid (@NotNull, @Positive).
-     * @param ex the exception
-     * @return a {@code ResponseEntity} with HTTP status 400 (Bad Request) and a specific
-     * error message indicating the invalid parameter type
+     * Handles validation failures for {@code @Valid} annotated request bodies.
+     * <p>
+     * Aggregates all constraint violation messages into a single comma-separated string.
+     * </p>
+     *
+     * @param ex the exception containing the binding results
+     * @return HTTP 400 Bad Request with the aggregated validation errors
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationFailures(MethodArgumentNotValidException ex) {
@@ -70,12 +75,14 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handles requests to undefined endpoints (404).
-     * Requires spring.mvc.throw-exception-if-no-handler-found=true and
-     * spring.web.resources.add-mappings=false in application.properties.
-     * @param ex the exception containing the request URL and method
-     * @return a {@code ResponseEntity} with HTTP status 404 (Not found) and a specific
-     * error message indicating the endpoint was not found
+     * Handles requests to undefined endpoints.
+     * <p>
+     * Requires {@code spring.mvc.throw-exception-if-no-handler-found=true} and
+     * {@code spring.web.resources.add-mappings=false} to be enabled.
+     * </p>
+     *
+     * @param ex the exception containing the requested URL and HTTP method
+     * @return HTTP 404 Not Found with the requested endpoint details
      */
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<ErrorResponse> handleEndpointNotFound(NoHandlerFoundException ex) {
@@ -88,10 +95,10 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handles HTTP method not supported (405).
-     * @param ex the exception
-     * @return a {@code ResponseEntity} with HTTP status 405 (Method Not Allowed) and a
-     * error message indicating that the HTTP method is not supported with the endpoint.
+     * Handles unsupported HTTP methods for a given endpoint.
+     *
+     * @param ex the exception containing the unsupported method and supported alternatives
+     * @return HTTP 405 Method Not Allowed with the list of supported methods
      */
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ErrorResponse> handleMethodNotAllowed(HttpRequestMethodNotSupportedException ex) {
@@ -104,12 +111,14 @@ public class GlobalExceptionHandler {
     }
 
     /**
-    *  Handler for errors when executing a data-related operation, SQL statement, database connection
-    *  Generic message in details over internal database exception for safety
-    * @param ex the exception
-    @return a {@code ResponseEntity} with HTTP status 500 (Internal Server Error) and a
-    * error message about the unexpected error.
-    */
+     * Handles generic data access errors (e.g., SQL exceptions, connection issues).
+     * <p>
+     * Returns a generic error message to the client to avoid exposing internal database details.
+     * </p>
+     *
+     * @param ex the data access exception
+     * @return HTTP 500 Internal Server Error with a generic database error message
+     */
     @ExceptionHandler(DataAccessException.class)
     public ResponseEntity<ErrorResponse> handleDataAccessError(DataAccessException ex) {
         logger.error("Data Access error occurred", ex);
@@ -119,10 +128,13 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     *  Handler for errors when request can't be processed as it violates with the current state of the targeted resource
-     *  Generic message in details over internal database exception for safety
-     * @param ex the exception
-     * @return 409 Conflict with server state error
+     * Handles data integrity violations (e.g., foreign key or unique constraint breaches).
+     * <p>
+     * Returns a generic message to prevent leaking sensitive database structure information.
+     * </p>
+     *
+     * @param ex the integrity violation exception
+     * @return HTTP 409 Conflict indicating the operation violates a database constraint
      */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
@@ -133,9 +145,10 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     *  Handler for when book is not found
-     * @param ex the exception
-     * @return 404 not found
+     * Handles cases where a requested book does not exist in the database.
+     *
+     * @param ex the custom exception containing the missing book identifier
+     * @return HTTP 404 Not Found with the specific book not found message
      */
     @ExceptionHandler(BookNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleBookNotFound(BookNotFoundException ex) {
@@ -144,6 +157,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
+    /**
+     * Handles errors related to invalid property references in Spring Data queries.
+     * <p>
+     * Occurs when a query tries to reference a property that does not exist on the entity.
+     * </p>
+     *
+     * @param ex the property reference exception
+     * @return HTTP 400 Bad Request with the invalid property details
+     */
     @ExceptionHandler(PropertyReferenceException.class)
     public ResponseEntity<ErrorResponse> handlePropertyReference(PropertyReferenceException ex) {
         logger.error("Property reference error occurred", ex);
@@ -151,13 +173,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
-
     /**
-     * Handles cases where the provided data type does not match the expected parameter type.
+     * Handles mismatches between request parameter types and expected method parameters.
      *
-     * @param ex the exception thrown due to the type mismatch
-     * @return a {@code ResponseEntity} with HTTP status 400 (Bad Request) and a specific
-     *         error message indicating the invalid parameter type
+     * @param ex the exception containing the invalid value and parameter name
+     * @return HTTP 400 Bad Request indicating the invalid parameter value
      */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
@@ -167,11 +187,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(error);
     }
 
-
     /**
-     * Fallback handler for any other unhandled exception.
-     * @param ex the exception
-     * @return 500 Internal Server Error with generic message
+     * Fallback handler for any unhandled exception not caught by more specific handlers.
+     * <p>
+     * Logs the full stack trace internally for debugging and returns a generic message to the client.
+     * </p>
+     *
+     * @param ex the unhandled exception
+     * @return HTTP 500 Internal Server Error with a generic message
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleEverythingElse(Exception ex) {
@@ -179,8 +202,4 @@ public class GlobalExceptionHandler {
         ErrorResponse error = new ErrorResponse("Internal server error", ex.getMessage(), 500);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
-
-
-
-
 }

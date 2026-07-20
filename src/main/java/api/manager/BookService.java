@@ -11,6 +11,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class BookService {
@@ -130,6 +131,14 @@ public class BookService {
            default: // Handler for invalid types
                throw new IllegalArgumentException("Invalid search type: " + type + ". Valid types: author, title, genre, price");
        }
+    }
+
+    public Map<String,Long> getGenreDistribution(){
+        return repository.getGenres().stream()
+                .collect(Collectors.toMap(
+                        row -> (String) row[0], // typecasting to appropriate data type
+                        row -> (Long) row[1] // Maps the row in the getGenres() array list
+            ));
     }
 
     public List<Book> getBooksSortedBy(String field) {

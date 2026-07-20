@@ -87,7 +87,7 @@
 
         @GetMapping("/books") // User sets page, if omit then default will be used
         public ResponseEntity<Page<Book>> getAllBooks(
-               @PageableDefault(size = 10, sort = "id") Pageable pageable) {
+               @PageableDefault(size = 12, sort = "id") Pageable pageable) {
             Page<Book> page = manager.getBooks(pageable);
             return ResponseEntity.ok(page);
         }
@@ -96,6 +96,11 @@
         public ResponseEntity<List<Book>> getSortedBooks(
                 @RequestParam(required = false, defaultValue = "title") String category) {
             return ResponseEntity.ok(manager.getBooksSortedBy(category));
+        }
+
+        @GetMapping("/books/genre")
+        public ResponseEntity<Map<String, Long>> getGenre() {
+            return ResponseEntity.ok(manager.getGenreDistribution());
         }
 
         // Patch (partial update)

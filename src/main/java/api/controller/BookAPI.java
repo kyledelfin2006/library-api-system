@@ -85,7 +85,7 @@
             return ResponseEntity.ok(new ApiResponse<>(true, "Book deleted successfully"));
         }
 
-        @GetMapping("/books")
+        @GetMapping("/books") // User sets page, if omit then default will be used
         public ResponseEntity<Page<Book>> getAllBooks(
                @PageableDefault(size = 10, sort = "id") Pageable pageable) {
             Page<Book> page = manager.getBooks(pageable);

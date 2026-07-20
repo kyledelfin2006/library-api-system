@@ -1,11 +1,13 @@
 package api.exceptions;
 
 import api.responses.ErrorResponse;
+import org.apache.coyote.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -136,10 +138,20 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
+    @ExceptionHandler(PropertyReferenceException.class)
+    public ResponseEntity<ErrorResponse> handlePropertyReference(PropertyReferenceException ex) {
+        logger.error("Property reference error occurred", ex);
+        ErrorResponse error = new ErrorResponse("Property reference error", ex.getMessage(), 400);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+
     /**
-     * Handler for when a datatype is not appropriate to the parameter.
-     * @param ex the exception
-     * @return 400 Invalid parameter type with specific message
+     * Handles cases where the provided data type does not match the expected parameter type.
+     *
+     * @param ex the exception thrown due to the type mismatch
+     * @return a {@code ResponseEntity} with HTTP status 400 (Bad Request) and a specific
+     *         error message indicating the invalid parameter type
      */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {

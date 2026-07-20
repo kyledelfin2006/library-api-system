@@ -133,6 +133,23 @@ public class BookService {
        }
     }
 
+    /**
+     * Retrieves a list of genre–count pairs from the repository and converts it into a map.
+     *
+     * <p>The repository method {@code getGenres()} returns a {@code List<Object[]>} where
+     * each {@code Object[]} contains exactly two elements: the genre (as a {@code String})
+     * and the count of books in that genre (as a {@code Long}).
+     *
+     * <p>The underlying query is:
+     * {@code SELECT b.genre, COUNT(b) FROM Book b GROUP BY b.genre}.
+     *
+     * <p>This method uses {@link Collectors#toMap} to build a {@code Map<String, Long>}
+     * where the key is the genre (converted to {@code String}) and the value is the count
+     * (converted to {@code Long}).
+     *
+     * @return a map containing genre names as keys and their corresponding book counts as values
+     * @throws NullPointerException if any genre is {@code null} (consider filtering before collecting)
+     */
     public Map<String,Long> getGenreDistribution(){
         return repository.getGenres().stream()
                 .collect(Collectors.toMap(

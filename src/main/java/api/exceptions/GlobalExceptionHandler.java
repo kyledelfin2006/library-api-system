@@ -1,7 +1,6 @@
 package api.exceptions;
 
 import api.responses.ErrorResponse;
-import org.apache.coyote.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -31,7 +30,8 @@ public class GlobalExceptionHandler {
     /**
      * Handles IllegalArgumentException thrown when input validation fails.
      * @param ex the exception
-     * @return 400 Bad Request with error details
+     * @return a {@code ResponseEntity} with HTTP status 400 (Bad Request) and a specific
+     * error message indicating the invalid parameter type
      */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
@@ -41,9 +41,10 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handles malformed JSON in request bodies.
+     * Handles malformed JSON bodies in requests.
      * @param ex the exception
-     * @return 400 Bad Request with a generic JSON parsing error
+     * @return a {@code ResponseEntity} with HTTP status 400 (Bad Request) and a specific
+     * error message indicating the invalid parameter type
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleJsonParseError(HttpMessageNotReadableException ex) {
@@ -52,9 +53,10 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handles validation errors from @Valid annotations (e.g., @NotBlank, @Positive).
-     * @param ex the exception containing validation errors
-     * @return 400 Bad Request with all validation messages combined
+     * Handles Validation errors in @Valid (@NotNull, @Positive).
+     * @param ex the exception
+     * @return a {@code ResponseEntity} with HTTP status 400 (Bad Request) and a specific
+     * error message indicating the invalid parameter type
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationFailures(MethodArgumentNotValidException ex) {
@@ -72,7 +74,8 @@ public class GlobalExceptionHandler {
      * Requires spring.mvc.throw-exception-if-no-handler-found=true and
      * spring.web.resources.add-mappings=false in application.properties.
      * @param ex the exception containing the request URL and method
-     * @return 404 Not Found with details
+     * @return a {@code ResponseEntity} with HTTP status 404 (Not found) and a specific
+     * error message indicating the endpoint was not found
      */
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<ErrorResponse> handleEndpointNotFound(NoHandlerFoundException ex) {

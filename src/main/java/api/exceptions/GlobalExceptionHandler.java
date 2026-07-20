@@ -90,7 +90,8 @@ public class GlobalExceptionHandler {
     /**
      * Handles HTTP method not supported (405).
      * @param ex the exception
-     * @return 405 Method Not Allowed with supported methods
+     * @return a {@code ResponseEntity} with HTTP status 405 (Method Not Allowed) and a
+     * error message indicating that the HTTP method is not supported with the endpoint.
      */
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ErrorResponse> handleMethodNotAllowed(HttpRequestMethodNotSupportedException ex) {
@@ -103,11 +104,12 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     *  Handler for errors when executing a data-related operation, SQL statement, database connection
-     *  Generic message in details over internal database exception for safety
-     * @param ex the exception
-     * @return 500 Internal Server Error
-     */
+    *  Handler for errors when executing a data-related operation, SQL statement, database connection
+    *  Generic message in details over internal database exception for safety
+    * @param ex the exception
+    @return a {@code ResponseEntity} with HTTP status 500 (Internal Server Error) and a
+    * error message about the unexpected error.
+    */
     @ExceptionHandler(DataAccessException.class)
     public ResponseEntity<ErrorResponse> handleDataAccessError(DataAccessException ex) {
         logger.error("Data Access error occurred", ex);

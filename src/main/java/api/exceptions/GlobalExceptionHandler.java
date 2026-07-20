@@ -19,8 +19,9 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 /**
- * Global exception handler for REST controllers.
- * Converts exceptions to standardized JSON error responses.
+ * Global (Project Wide) exception handler for REST controllers.
+ *
+ * <p>Converts exceptions to standardized JSON error responses.
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {

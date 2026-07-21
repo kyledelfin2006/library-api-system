@@ -102,8 +102,10 @@ public class BookService {
 
     @Transactional
     public void deleteBookById(Long id) {
-        Book bookToRemove = findBookById(id);
-        repository.delete(bookToRemove);
+        int deletedCount = repository.deleteBookById(id);
+        if (deletedCount == 0){
+            throw new  BookNotFoundException("Couldn't find book of ID: " + id);
+        }
     }
 
     public List<Book> getBooksWithinBudget(double maxPrice) {

@@ -199,7 +199,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleEverythingElse(Exception ex) {
         logger.error("Unexpected error occurred", ex);
-        ErrorResponse error = new ErrorResponse("Internal server error", ex.getMessage(), 500);
+        ErrorResponse error = new ErrorResponse("Internal server error", "Internal server malfunctioned.", 500);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 }

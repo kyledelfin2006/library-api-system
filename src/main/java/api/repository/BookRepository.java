@@ -2,6 +2,7 @@ package api.repository;
 
 import api.models.Book;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -30,6 +31,11 @@ public interface BookRepository extends JpaRepository<Book, Long> {
 
    @Query("SELECT b.genre, COUNT(b) FROM Book b GROUP BY b.genre")
    List<Object[]> getGenres();
+
+    @Modifying(clearAutomatically = true) // Clears the persistence context to avoid stale data
+    @Query("DELETE FROM Book b WHERE b.id = :id")
+    int deleteBookById(@Param("id") Long id);
+
 
 
 

@@ -97,7 +97,6 @@ public class BookService {
             if (updates.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
                 throw new IllegalArgumentException("Price must be greater than 0");
             }
-            existingBook.setPrice(updates.getPrice());
         }
 
         // 3. Apply all updates
@@ -145,7 +144,7 @@ public class BookService {
            case  "price":
                try {
                    BigDecimal price = new BigDecimal(value);
-                   return repository.findByPriceContaining(price);
+                   return repository.findByPrice(price);
                } catch (NumberFormatException e) {
                throw new IllegalArgumentException("Invalid price format value:" + value);
                }

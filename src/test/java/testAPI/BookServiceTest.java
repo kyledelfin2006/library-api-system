@@ -375,18 +375,18 @@ class BookServiceTest {
     void searchBooks_byPrice_shouldReturnBooksWithMatchingPrice() {
         List<Book> expected = List.of(sampleBook);
         // The service uses Long.parseLong, so pass an integer string
-        when(repository.findByPriceContaining(new BigDecimal("45"))).thenReturn(expected);
+        when(repository.findByPrice(new BigDecimal("45"))).thenReturn(expected);
 
         List<Book> result = bookService.searchBooks("price", "45");
 
         assertEquals(expected, result);
-        verify(repository, times(1)).findByPriceContaining(new BigDecimal("45"));
+        verify(repository, times(1)).findByPrice(new BigDecimal("45"));
     }
 
     @Test
     void searchBooks_byPrice_withInvalidNumber_shouldThrowIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class, () -> bookService.searchBooks("price", "not-a-number"));
-        verify(repository, never()).findByPriceContaining(any(BigDecimal.class));
+        verify(repository, never()).findByPrice(any(BigDecimal.class));
     }
 
     @Test

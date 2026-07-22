@@ -17,7 +17,7 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     List<Book> findByAuthorContainingIgnoreCase(String author);
     List<Book> findByGenreContainingIgnoreCase(String genre);
     List<Book> findByPriceLessThanEqual(BigDecimal price);
-    List<Book> findByPriceContaining(BigDecimal price);
+    List<Book> findByPrice(BigDecimal price);
 
     @Query("SELECT b FROM Book b WHERE b.price BETWEEN :minPrice AND :maxPrice")
     List<Book> findBooksByPriceBetween(@Param("minPrice") BigDecimal minPrice,

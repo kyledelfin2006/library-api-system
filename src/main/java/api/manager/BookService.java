@@ -134,8 +134,8 @@ public class BookService {
                return repository.findByGenreContainingIgnoreCase(value);
            case  "price":
                try {
-                   BigDecimal price = BigDecimal.valueOf(Long.parseLong(value));
-                   return repository.findPriceContaining(price);
+                   BigDecimal price = new BigDecimal(value);
+                   return repository.findByPriceContaining(price);
                } catch (NumberFormatException e) {
                throw new IllegalArgumentException("Invalid price format value:" + value);
                }

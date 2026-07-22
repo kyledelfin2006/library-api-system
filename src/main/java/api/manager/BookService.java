@@ -47,25 +47,27 @@ public class BookService {
     public Book patchBook(Long id, BookDTO updates) {
         Book existingBook = findBookById(id);
 
-        // Update only provided fields, If Null/Not given ignore.
-        if (updates.getTitle() != null && !updates.getTitle().trim().isEmpty()) {
-            existingBook.setTitle(updates.getTitle());
+        if (hasText(updates.getTitle())) {
+            existingBook.setTitle(updates.getTitle().trim());
         }
-        if (updates.getAuthor() != null && !updates.getAuthor().trim().isEmpty()) {
-            existingBook.setAuthor(updates.getAuthor());
+        if (hasText(updates.getAuthor())) {
+            existingBook.setAuthor(updates.getAuthor().trim());
         }
-        if (updates.getGenre() != null && !updates.getGenre().trim().isEmpty()) {
-            existingBook.setGenre(updates.getGenre());
+        if (hasText(updates.getGenre())) {
+            existingBook.setGenre(updates.getGenre().trim());
         }
-
         if (updates.getPrice() != null) {
-            if (updates.getPrice() <= 0) {
+            if (updates.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
                 throw new IllegalArgumentException("Price must be greater than 0");
             }
             existingBook.setPrice(updates.getPrice());
         }
-        repository.save(existingBook);
-        return existingBook;
+
+        return existingBook; // no repository.save() needed — see below
+    }
+
+    private boolean hasText(String s) {
+        return s != null && !s.trim().isEmpty();
     }
 
     @Transactional
@@ -87,8 +89,12 @@ public class BookService {
         if (updates.getGenre() == null || updates.getGenre().trim().isEmpty()) {
             throw new IllegalArgumentException("Genre cannot be empty");
         }
-        if (updates.getPrice() == null || updates.getPrice() <= 0) {
-            throw new IllegalArgumentException("Price must be greater than 0");
+
+        if (updates.getPrice() != null) {
+            if (updates.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("Price must be greater than 0");
+            }
+            existingBook.setPrice(updates.getPrice());
         }
 
         // 3. Apply all updates
@@ -125,9 +131,8 @@ public class BookService {
                return repository.findByGenreContainingIgnoreCase(value);
            case  "price":
                try {
-                   double price = Double.parseDouble(value);
-                   double tolerance = 0.0001;
-                   return repository.findBooksByPriceBetween(price - tolerance, price + tolerance);
+                   BigDecimal price = BigDecimal.valueOf(Long.parseLong(value));
+                   return repository.findPriceContaining(price);
                } catch (NumberFormatException e) {
                throw new IllegalArgumentException("Invalid price format value:" + value);
                }
@@ -179,8 +184,8 @@ public class BookService {
         return repository.findAll(sort);
     }
 
-    public Double getTotalLibraryValue() {
-        return repository.sumTotalOfPrice().orElse(0.0);
+    public BigDecimal getTotalLibraryValue() {
+        return repository.sumTotalOfPrice().orElse(BigDecimal.ZERO);
     }
 
     public Long countBooks(){

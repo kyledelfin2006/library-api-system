@@ -5,6 +5,7 @@
     import api.responses.ApiResponse;
     import api.manager.BookService;
     import jakarta.validation.Valid;
+    import org.hibernate.boot.models.MultipleAttributeNaturesException;
     import org.springframework.beans.factory.annotation.Autowired;
     import org.springframework.http.HttpStatus;
     import org.springframework.http.ResponseEntity;
@@ -20,7 +21,7 @@
 
 
     @RestController
-    @RequestMapping("/api")
+    @RequestMapping("/api/books")
     public class BookAPI {
 
         private final BookService manager;
@@ -32,12 +33,12 @@
 
         // ==================== ROUTES ====================
 
-        @GetMapping("/books/health")
+        @GetMapping("/health")
         public ResponseEntity<ApiResponse<String>> healthCheck() {
             return ResponseEntity.ok(new ApiResponse<>(true, "API is running"));
         }
 
-        @GetMapping("/books/stats")
+        @GetMapping("/stats")
         public ResponseEntity<Map<String,Object>> getStats() {
             Map<String, Object> stats = new ConcurrentHashMap<>();
             stats.put("totalBooks", manager.countBooks());
@@ -50,7 +51,7 @@
         }
 
         // Search books
-        @GetMapping("/books/search")
+        @GetMapping("/search")
         public ResponseEntity<List<Book>> searchBooks(
                 @RequestParam String type,
                 @RequestParam String value) {
@@ -59,14 +60,14 @@
             return ResponseEntity.ok(foundBooks);
         }
 
-        @GetMapping("/books/budget")
+        @GetMapping("/budget")
         public ResponseEntity<List<Book>> budgetBooks(@RequestParam BigDecimal maxPrice) {
                 List<Book> affordableBooks = manager.getBooksWithinBudget(maxPrice);
                 return ResponseEntity.ok(affordableBooks);
         }
 
         // Add a new book (validated)
-        @PostMapping("/books")
+        @PostMapping("/addBook")
         public ResponseEntity<ApiResponse<Book>> addBook(@Valid @RequestBody BookDTO input) {
             Book newBook = manager.addBook(input);
             return ResponseEntity.status(HttpStatus.CREATED)
@@ -74,39 +75,49 @@
         }
 
         // Get book by ID
-        @GetMapping("/books/{id}")
+        @GetMapping("/{id}")
         public ResponseEntity<Book> getBookById(@PathVariable Long id) {
             Book book = manager.findBookById(id);
             return ResponseEntity.ok(book);
         }
 
         // Delete a book
-        @DeleteMapping("/books/{id}")
+        @DeleteMapping("/{id}")
         public ResponseEntity<ApiResponse<Void>> deleteBook(@PathVariable Long id) {
             manager.deleteBookById(id);
             return ResponseEntity.ok(new ApiResponse<>(true, "Book deleted successfully"));
         }
 
-        @GetMapping("/books") // User sets page, if omit then default will be used
+        @GetMapping("/all") // User sets page, if omit then default will be used
         public ResponseEntity<Page<Book>> getAllBooks(
                @PageableDefault(size = 12, sort = "id") Pageable pageable) {
             Page<Book> page = manager.getBooks(pageable);
             return ResponseEntity.ok(page);
         }
 
-        @GetMapping("/books/sorted")
+        @GetMapping("/sorted")
         public ResponseEntity<List<Book>> getSortedBooks(
                 @RequestParam(required = false, defaultValue = "title") String category) {
             return ResponseEntity.ok(manager.getBooksSortedBy(category));
         }
 
-        @GetMapping("/books/genre")
+        @GetMapping("/genre")
         public ResponseEntity<Map<String, Long>> getGenre() {
             return ResponseEntity.ok(manager.getGenreDistribution());
         }
 
+        @GetMapping("/price")
+        public ResponseEntity<List<Book>> getPriceRangedBooks(
+                @RequestParam String minPrice,
+                @RequestParam String maxPrice
+        ){
+            return  ResponseEntity.ok(manager.getBooksInPriceRange(minPrice,maxPrice));
+        }
+
+
+
         // Patch (partial update)
-        @PatchMapping("/books/{id}")
+        @PatchMapping("/{id}")
         public ResponseEntity<ApiResponse<Book>> patchBook(
                 @PathVariable Long id,
                 @RequestBody BookDTO updates) { // No @Valid to allow null values
@@ -116,7 +127,7 @@
         }
 
         // Put (complete update)
-        @PutMapping("/books/{id}")
+        @PutMapping("/{id}")
         public ResponseEntity<ApiResponse<Book>> replaceBook(
                 @PathVariable Long id,
                 @Valid @RequestBody BookDTO updates){

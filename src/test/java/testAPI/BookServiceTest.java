@@ -1,6 +1,6 @@
 package testAPI;
 
-import api.exceptions.BookNotFoundException;
+import api.book.controller.exceptions.BookNotFoundException;
 import api.manager.BookService;
 import api.models.Book;
 import api.models.BookRequestDTO;

@@ -1,10 +1,10 @@
 package testAPI;
 
-import api.book.controller.exceptions.BookNotFoundException;
-import api.manager.BookService;
-import api.models.Book;
-import api.models.BookRequestDTO;
-import api.repository.BookRepository;
+import app.book.exceptions.BookNotFoundException;
+import app.book.service.BookService;
+import app.book.entity.Book;
+import app.book.dto.BookRequestDTO;
+import app.book.repository.BookRepository;
 import jakarta.validation.constraints.Positive;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

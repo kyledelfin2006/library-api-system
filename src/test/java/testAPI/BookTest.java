@@ -1,7 +1,7 @@
 package testAPI;
 
-import api.models.Book;
-import api.models.BookRequestDTO;
+import app.book.entity.Book;
+import app.book.dto.BookRequestDTO;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;

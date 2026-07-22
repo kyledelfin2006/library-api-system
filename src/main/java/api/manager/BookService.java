@@ -106,7 +106,7 @@ public class BookService {
         existingBook.setPrice(updates.getPrice());
 
         // 4. Persist and return the managed entity
-        return repository.save(existingBook);
+        return existingBook;
     }
 
     @Transactional

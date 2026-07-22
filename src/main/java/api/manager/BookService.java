@@ -43,6 +43,7 @@ public class BookService {
         return repository.findById(id).orElseThrow(() -> new BookNotFoundException("Couldn't find book of ID: " + id ));
     }
 
+    // Partial updates
     @Transactional
     public Book patchBook(Long id, BookDTO updates) {
         Book existingBook = findBookById(id);
@@ -66,10 +67,12 @@ public class BookService {
         return existingBook; // no repository.save() needed — see below
     }
 
+    // Checks whether a string has text and is not null
     private boolean hasText(String s) {
         return s != null && !s.trim().isEmpty();
     }
 
+    // Replaces entire book
     @Transactional
     public Book replaceBook(Long id, BookDTO updates) {
         // 1. Fetch the existing book (throws 404 if not found)
@@ -80,13 +83,13 @@ public class BookService {
         if (updates == null) {
             throw new IllegalArgumentException("Book data must not be null");
         }
-        if (updates.getTitle() == null || updates.getTitle().trim().isEmpty()) {
+        if (!hasText(updates.getTitle())) {
             throw new IllegalArgumentException("Title cannot be empty");
         }
-        if (updates.getAuthor() == null || updates.getAuthor().trim().isEmpty()) {
+        if (!hasText(updates.getAuthor())) {
             throw new IllegalArgumentException("Author cannot be empty");
         }
-        if (updates.getGenre() == null || updates.getGenre().trim().isEmpty()) {
+        if (!hasText(updates.getGenre())) {
             throw new IllegalArgumentException("Genre cannot be empty");
         }
 

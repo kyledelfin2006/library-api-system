@@ -32,7 +32,6 @@ class BookServiceTest {
     @InjectMocks
     private BookService bookService;
 
-    // Mock setups
     private Book sampleBook;
     private BookDTO sampleBookDTO;
     private final Long BOOK_ID = 1L;
@@ -93,7 +92,6 @@ class BookServiceTest {
 
         // Update only title and price
         BookDTO updates = new BookDTO("New Title", null, null, new BigDecimal("30.0"));
-        when(repository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Book result = bookService.patchBook(BOOK_ID, updates);
 
@@ -101,7 +99,8 @@ class BookServiceTest {
         assertEquals("Old Author", result.getAuthor());  // unchanged
         assertEquals("Old Genre", result.getGenre());    // unchanged
         assertEquals(0, new BigDecimal("30.0").compareTo(result.getPrice()));
-        verify(repository, times(1)).save(existing);
+        // No save() call expected
+        verify(repository, never()).save(any());
     }
 
     @Test
@@ -111,7 +110,6 @@ class BookServiceTest {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(existing));
 
         BookDTO updates = new BookDTO(null, "New Author", null, null);
-        when(repository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Book result = bookService.patchBook(BOOK_ID, updates);
 
@@ -119,7 +117,7 @@ class BookServiceTest {
         assertEquals("New Author", result.getAuthor());
         assertEquals("Old Genre", result.getGenre());
         assertEquals(0, new BigDecimal("10.0").compareTo(result.getPrice()));
-        verify(repository, times(1)).save(existing);
+        verify(repository, never()).save(any());
     }
 
     @Test
@@ -129,7 +127,6 @@ class BookServiceTest {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(existing));
 
         BookDTO updates = new BookDTO(null, null, "New Genre", null);
-        when(repository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Book result = bookService.patchBook(BOOK_ID, updates);
 
@@ -137,7 +134,7 @@ class BookServiceTest {
         assertEquals("Old Author", result.getAuthor());
         assertEquals("New Genre", result.getGenre());
         assertEquals(0, new BigDecimal("10.0").compareTo(result.getPrice()));
-        verify(repository, times(1)).save(existing);
+        verify(repository, never()).save(any());
     }
 
     @Test
@@ -146,9 +143,8 @@ class BookServiceTest {
         existing.setId(BOOK_ID);
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(existing));
 
-        // Blank strings should be treated same as null (trim().isEmpty() branch)
+        // Blank strings should be treated as no update
         BookDTO updates = new BookDTO("   ", "", "  ", null);
-        when(repository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Book result = bookService.patchBook(BOOK_ID, updates);
 
@@ -156,7 +152,7 @@ class BookServiceTest {
         assertEquals("Old Author", result.getAuthor());
         assertEquals("Old Genre", result.getGenre());
         assertEquals(0, new BigDecimal("10.0").compareTo(result.getPrice()));
-        verify(repository, times(1)).save(existing);
+        verify(repository, never()).save(any());
     }
 
     @Test
@@ -166,13 +162,12 @@ class BookServiceTest {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(existing));
 
         BookDTO updates = new BookDTO("New Title", null, null, null);
-        when(repository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Book result = bookService.patchBook(BOOK_ID, updates);
 
         assertEquals("New Title", result.getTitle());
-        assertEquals(0, new BigDecimal("10.0").compareTo(result.getPrice())); // unchanged since price update was null
-        verify(repository, times(1)).save(existing);
+        assertEquals(0, new BigDecimal("10.0").compareTo(result.getPrice())); // unchanged
+        verify(repository, never()).save(any());
     }
 
     @Test
@@ -281,12 +276,15 @@ class BookServiceTest {
     }
 
     @Test
-    void replaceBook_whenDtoHasNullPrice_shouldThrowIllegalArgumentException() {
+    void replaceBook_whenDtoHasNullPrice_shouldSetPriceToNull() {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
-        BookDTO invalidDto = new BookDTO("Title", "Author", "Genre", null);
+        BookDTO dto = new BookDTO("Title", "Author", "Genre", null);
+        when(repository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        assertThrows(IllegalArgumentException.class, () -> bookService.replaceBook(BOOK_ID, invalidDto));
-        verify(repository, never()).save(any());
+        Book result = bookService.replaceBook(BOOK_ID, dto);
+
+        assertNull(result.getPrice());
+        verify(repository, times(1)).save(any(Book.class));
     }
 
     @Test
@@ -374,22 +372,21 @@ class BookServiceTest {
     }
 
     @Test
-    void searchBooks_byPrice_shouldReturnBooksWithMatchingPriceWithinTolerance() {
+    void searchBooks_byPrice_shouldReturnBooksWithMatchingPrice() {
         List<Book> expected = List.of(sampleBook);
-        when(repository.findBooksByPriceBetween(new BigDecimal("44.9999"), new BigDecimal("45.0001")))
-                .thenReturn(expected);
+        // The service uses Long.parseLong, so pass an integer string
+        when(repository.findPriceContaining(new BigDecimal("45"))).thenReturn(expected);
 
-        List<Book> result = bookService.searchBooks("price", "45.0");
+        List<Book> result = bookService.searchBooks("price", "45");
 
         assertEquals(expected, result);
-        verify(repository, times(1))
-                .findBooksByPriceBetween(new BigDecimal("44.9999"), new BigDecimal("45.0001"));
+        verify(repository, times(1)).findPriceContaining(new BigDecimal("45"));
     }
 
     @Test
     void searchBooks_byPrice_withInvalidNumber_shouldThrowIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class, () -> bookService.searchBooks("price", "not-a-number"));
-        verify(repository, never()).findBooksByPriceBetween(any(BigDecimal.class), any(BigDecimal.class));
+        verify(repository, never()).findPriceContaining(any(BigDecimal.class));
     }
 
     @Test

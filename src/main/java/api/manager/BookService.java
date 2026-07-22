@@ -2,7 +2,7 @@ package api.manager;
 
 import api.exceptions.BookNotFoundException;
 import api.models.Book;
-import api.models.BookDTO;
+import api.models.BookRequestDTO;
 import api.repository.BookRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
@@ -28,7 +28,7 @@ public class BookService {
     }
 
     @Transactional
-    public Book addBook(BookDTO input){
+    public Book addBook(BookRequestDTO input){
         Book newBook = new Book(
                 input.getTitle(),
                 input.getAuthor(),
@@ -45,7 +45,7 @@ public class BookService {
 
     // Partial updates
     @Transactional
-    public Book patchBook(Long id, BookDTO updates) {
+    public Book patchBook(Long id, BookRequestDTO updates) {
         Book existingBook = findBookById(id);
 
         if (hasText(updates.getTitle())) {
@@ -74,7 +74,7 @@ public class BookService {
 
     // Replaces entire book
     @Transactional
-    public Book replaceBook(Long id, BookDTO updates) {
+    public Book replaceBook(Long id, BookRequestDTO updates) {
         // 1. Fetch the existing book (throws 404 if not found)
         Book existingBook = findBookById(id); // Loaded from DB
 

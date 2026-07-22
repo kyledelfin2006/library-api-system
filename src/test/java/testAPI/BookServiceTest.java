@@ -3,7 +3,7 @@ package testAPI;
 import api.exceptions.BookNotFoundException;
 import api.manager.BookService;
 import api.models.Book;
-import api.models.BookDTO;
+import api.models.BookRequestDTO;
 import api.repository.BookRepository;
 import jakarta.validation.constraints.Positive;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,7 +33,7 @@ class BookServiceTest {
     private BookService bookService;
 
     private Book sampleBook;
-    private BookDTO sampleBookDTO;
+    private BookRequestDTO sampleBookRequestDTO;
     private final Long BOOK_ID = 1L;
     private final String TITLE = "Effective Java";
     private final String AUTHOR = "Joshua Bloch";
@@ -45,7 +45,7 @@ class BookServiceTest {
         sampleBook = new Book(TITLE, AUTHOR, GENRE, PRICE);
         sampleBook.setId(BOOK_ID);
 
-        sampleBookDTO = new BookDTO(TITLE, AUTHOR, GENRE, PRICE);
+        sampleBookRequestDTO = new BookRequestDTO(TITLE, AUTHOR, GENRE, PRICE);
     }
 
     // ---------- addBook ----------
@@ -53,7 +53,7 @@ class BookServiceTest {
     void addBook_shouldSaveAndReturnBook() {
         when(repository.save(any(Book.class))).thenReturn(sampleBook);
 
-        Book result = bookService.addBook(sampleBookDTO);
+        Book result = bookService.addBook(sampleBookRequestDTO);
 
         assertNotNull(result);
         assertEquals(TITLE, result.getTitle());
@@ -91,7 +91,7 @@ class BookServiceTest {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(existing));
 
         // Update only title and price
-        BookDTO updates = new BookDTO("New Title", null, null, new BigDecimal("30.0"));
+        BookRequestDTO updates = new BookRequestDTO("New Title", null, null, new BigDecimal("30.0"));
 
         Book result = bookService.patchBook(BOOK_ID, updates);
 
@@ -109,7 +109,7 @@ class BookServiceTest {
         existing.setId(BOOK_ID);
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(existing));
 
-        BookDTO updates = new BookDTO(null, "New Author", null, null);
+        BookRequestDTO updates = new BookRequestDTO(null, "New Author", null, null);
 
         Book result = bookService.patchBook(BOOK_ID, updates);
 
@@ -126,7 +126,7 @@ class BookServiceTest {
         existing.setId(BOOK_ID);
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(existing));
 
-        BookDTO updates = new BookDTO(null, null, "New Genre", null);
+        BookRequestDTO updates = new BookRequestDTO(null, null, "New Genre", null);
 
         Book result = bookService.patchBook(BOOK_ID, updates);
 
@@ -144,7 +144,7 @@ class BookServiceTest {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(existing));
 
         // Blank strings should be treated as no update
-        BookDTO updates = new BookDTO("   ", "", "  ", null);
+        BookRequestDTO updates = new BookRequestDTO("   ", "", "  ", null);
 
         Book result = bookService.patchBook(BOOK_ID, updates);
 
@@ -161,7 +161,7 @@ class BookServiceTest {
         existing.setId(BOOK_ID);
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(existing));
 
-        BookDTO updates = new BookDTO("New Title", null, null, null);
+        BookRequestDTO updates = new BookRequestDTO("New Title", null, null, null);
 
         Book result = bookService.patchBook(BOOK_ID, updates);
 
@@ -173,7 +173,7 @@ class BookServiceTest {
     @Test
     void patchBook_whenPriceIsZeroOrNegative_shouldThrowIllegalArgumentException() {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
-        BookDTO updates = new BookDTO(null, null, null, new BigDecimal("-5.0"));
+        BookRequestDTO updates = new BookRequestDTO(null, null, null, new BigDecimal("-5.0"));
 
         assertThrows(IllegalArgumentException.class, () -> bookService.patchBook(BOOK_ID, updates));
         verify(repository, never()).save(any());
@@ -182,7 +182,7 @@ class BookServiceTest {
     @Test
     void patchBook_whenPriceIsExactlyZero_shouldThrowIllegalArgumentException() {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
-        BookDTO updates = new BookDTO(null, null, null, BigDecimal.ZERO);
+        BookRequestDTO updates = new BookRequestDTO(null, null, null, BigDecimal.ZERO);
 
         assertThrows(IllegalArgumentException.class, () -> bookService.patchBook(BOOK_ID, updates));
         verify(repository, never()).save(any());
@@ -191,7 +191,7 @@ class BookServiceTest {
     @Test
     void patchBook_whenBookNotFound_shouldThrowBookNotFoundException() {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.empty());
-        BookDTO updates = new BookDTO("New", null, null, new BigDecimal("20.0"));
+        BookRequestDTO updates = new BookRequestDTO("New", null, null, new BigDecimal("20.0"));
 
         assertThrows(BookNotFoundException.class, () -> bookService.patchBook(BOOK_ID, updates));
         verify(repository, never()).save(any());
@@ -201,7 +201,7 @@ class BookServiceTest {
     @Test
     void replaceBook_shouldReplaceAllFields() {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
-        BookDTO newData = new BookDTO("New Title", "New Author", "New Genre", new BigDecimal("99.99"));
+        BookRequestDTO newData = new BookRequestDTO("New Title", "New Author", "New Genre", new BigDecimal("99.99"));
         when(repository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Book result = bookService.replaceBook(BOOK_ID, newData);
@@ -224,7 +224,7 @@ class BookServiceTest {
     @Test
     void replaceBook_whenDtoHasNullTitle_shouldThrowIllegalArgumentException() {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
-        BookDTO invalidDto = new BookDTO(null, "Author", "Genre", new BigDecimal("20.0"));
+        BookRequestDTO invalidDto = new BookRequestDTO(null, "Author", "Genre", new BigDecimal("20.0"));
 
         assertThrows(IllegalArgumentException.class, () -> bookService.replaceBook(BOOK_ID, invalidDto));
         verify(repository, never()).save(any());
@@ -233,7 +233,7 @@ class BookServiceTest {
     @Test
     void replaceBook_whenDtoHasEmptyTitle_shouldThrowIllegalArgumentException() {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
-        BookDTO invalidDto = new BookDTO("   ", "Author", "Genre", new BigDecimal("20.0"));
+        BookRequestDTO invalidDto = new BookRequestDTO("   ", "Author", "Genre", new BigDecimal("20.0"));
 
         assertThrows(IllegalArgumentException.class, () -> bookService.replaceBook(BOOK_ID, invalidDto));
         verify(repository, never()).save(any());
@@ -242,7 +242,7 @@ class BookServiceTest {
     @Test
     void replaceBook_whenDtoHasNullAuthor_shouldThrowIllegalArgumentException() {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
-        BookDTO invalidDto = new BookDTO("Title", null, "Genre", new BigDecimal("20.0"));
+        BookRequestDTO invalidDto = new BookRequestDTO("Title", null, "Genre", new BigDecimal("20.0"));
 
         assertThrows(IllegalArgumentException.class, () -> bookService.replaceBook(BOOK_ID, invalidDto));
         verify(repository, never()).save(any());
@@ -251,7 +251,7 @@ class BookServiceTest {
     @Test
     void replaceBook_whenDtoHasEmptyAuthor_shouldThrowIllegalArgumentException() {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
-        BookDTO invalidDto = new BookDTO("Title", "", "Genre", new BigDecimal("20.0"));
+        BookRequestDTO invalidDto = new BookRequestDTO("Title", "", "Genre", new BigDecimal("20.0"));
 
         assertThrows(IllegalArgumentException.class, () -> bookService.replaceBook(BOOK_ID, invalidDto));
         verify(repository, never()).save(any());
@@ -260,7 +260,7 @@ class BookServiceTest {
     @Test
     void replaceBook_whenDtoHasNullGenre_shouldThrowIllegalArgumentException() {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
-        BookDTO invalidDto = new BookDTO("Title", "Author", null, new BigDecimal("20.0"));
+        BookRequestDTO invalidDto = new BookRequestDTO("Title", "Author", null, new BigDecimal("20.0"));
 
         assertThrows(IllegalArgumentException.class, () -> bookService.replaceBook(BOOK_ID, invalidDto));
         verify(repository, never()).save(any());
@@ -269,7 +269,7 @@ class BookServiceTest {
     @Test
     void replaceBook_whenDtoHasEmptyGenre_shouldThrowIllegalArgumentException() {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
-        BookDTO invalidDto = new BookDTO("Title", "Author", "  ", new BigDecimal("20.0"));
+        BookRequestDTO invalidDto = new BookRequestDTO("Title", "Author", "  ", new BigDecimal("20.0"));
 
         assertThrows(IllegalArgumentException.class, () -> bookService.replaceBook(BOOK_ID, invalidDto));
         verify(repository, never()).save(any());
@@ -278,7 +278,7 @@ class BookServiceTest {
     @Test
     void replaceBook_whenDtoHasNullPrice_shouldSetPriceToNull() {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
-        BookDTO dto = new BookDTO("Title", "Author", "Genre", null);
+        BookRequestDTO dto = new BookRequestDTO("Title", "Author", "Genre", null);
         when(repository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Book result = bookService.replaceBook(BOOK_ID, dto);
@@ -290,7 +290,7 @@ class BookServiceTest {
     @Test
     void replaceBook_whenDtoHasPriceZero_shouldThrowIllegalArgumentException() {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
-        BookDTO invalidDto = new BookDTO("Title", "Author", "Genre", BigDecimal.ZERO);
+        BookRequestDTO invalidDto = new BookRequestDTO("Title", "Author", "Genre", BigDecimal.ZERO);
 
         assertThrows(IllegalArgumentException.class, () -> bookService.replaceBook(BOOK_ID, invalidDto));
         verify(repository, never()).save(any());
@@ -299,7 +299,7 @@ class BookServiceTest {
     @Test
     void replaceBook_whenDtoHasNegativePrice_shouldThrowIllegalArgumentException() {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
-        BookDTO invalidDto = new BookDTO("Title", "Author", "Genre", new BigDecimal("-10.0"));
+        BookRequestDTO invalidDto = new BookRequestDTO("Title", "Author", "Genre", new BigDecimal("-10.0"));
 
         assertThrows(IllegalArgumentException.class, () -> bookService.replaceBook(BOOK_ID, invalidDto));
         verify(repository, never()).save(any());
@@ -308,7 +308,7 @@ class BookServiceTest {
     @Test
     void replaceBook_whenBookNotFound_shouldThrowBookNotFoundException() {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.empty());
-        BookDTO dto = new BookDTO("Title", "Author", "Genre", new BigDecimal("20.0"));
+        BookRequestDTO dto = new BookRequestDTO("Title", "Author", "Genre", new BigDecimal("20.0"));
 
         assertThrows(BookNotFoundException.class, () -> bookService.replaceBook(BOOK_ID, dto));
         verify(repository, never()).save(any());

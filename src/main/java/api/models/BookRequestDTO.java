@@ -9,7 +9,7 @@ import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class BookDTO {
+public class BookRequestDTO {
 
     @NotBlank(message = "Title cannot be empty")
     @Size(max = 100, message = "Title cannot exceed 100 characters")
@@ -29,10 +29,10 @@ public class BookDTO {
     private BigDecimal price;
 
     // No-arg constructor for Jackson deserialization
-    public BookDTO() {}
+    public BookRequestDTO() {}
 
     // Clean constructor without inline validation annotations
-    public BookDTO(String title, String author, String genre, BigDecimal price) {
+    public BookRequestDTO(String title, String author, String genre, BigDecimal price) {
         this.title = title;
         this.author = author;
         this.genre = genre;

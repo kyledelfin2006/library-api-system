@@ -1,11 +1,10 @@
     package api.controller;
 
     import api.models.Book;
-    import api.models.BookDTO;
+    import api.models.BookRequestDTO;
     import api.responses.ApiResponse;
     import api.manager.BookService;
     import jakarta.validation.Valid;
-    import org.hibernate.boot.models.MultipleAttributeNaturesException;
     import org.springframework.beans.factory.annotation.Autowired;
     import org.springframework.http.HttpStatus;
     import org.springframework.http.ResponseEntity;
@@ -68,7 +67,7 @@
 
         // Add a new book (validated)
         @PostMapping("/addBook")
-        public ResponseEntity<ApiResponse<Book>> addBook(@Valid @RequestBody BookDTO input) {
+        public ResponseEntity<ApiResponse<Book>> addBook(@Valid @RequestBody BookRequestDTO input) {
             Book newBook = manager.addBook(input);
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(new ApiResponse<>(true, "Book Added Successfully", newBook));
@@ -120,7 +119,7 @@
         @PatchMapping("/{id}")
         public ResponseEntity<ApiResponse<Book>> patchBook(
                 @PathVariable Long id,
-                @RequestBody BookDTO updates) { // No @Valid to allow null values
+                @RequestBody BookRequestDTO updates) { // No @Valid to allow null values
 
             Book updated = manager.patchBook(id, updates);
             return ResponseEntity.ok(new ApiResponse<>(true, "Book updated successfully", updated));
@@ -130,7 +129,7 @@
         @PutMapping("/{id}")
         public ResponseEntity<ApiResponse<Book>> replaceBook(
                 @PathVariable Long id,
-                @Valid @RequestBody BookDTO updates){
+                @Valid @RequestBody BookRequestDTO updates){
 
              Book updated = manager.replaceBook(id,updates);
             return ResponseEntity.ok(new ApiResponse<>(true, "Book updated successfully", updated));

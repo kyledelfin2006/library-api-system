@@ -1,7 +1,7 @@
 package testAPI;
 
 import api.models.Book;
-import api.models.BookDTO;
+import api.models.BookRequestDTO;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -34,10 +34,10 @@ class BookTest {
         Validator validator = factory.getValidator();
 
         // 2. Create an INVALID DTO (empty title, null author, negative price)
-        BookDTO invalidDto = new BookDTO("", null, "Fiction", new BigDecimal("-5.0"));
+        BookRequestDTO invalidDto = new BookRequestDTO("", null, "Fiction", new BigDecimal("-5.0"));
 
         // 3. Run the validation
-        Set<ConstraintViolation<BookDTO>> violations = validator.validate(invalidDto);
+        Set<ConstraintViolation<BookRequestDTO>> violations = validator.validate(invalidDto);
 
         // 4. Assert that validation failed
         assertFalse(violations.isEmpty(), "Expected validation errors but got none");
@@ -59,10 +59,10 @@ class BookTest {
         Validator validator = factory.getValidator();
 
         // 2. Create a fully valid DTO
-        BookDTO validDto = new BookDTO("The Hobbit", "J.R.R. Tolkien", "Fantasy", new BigDecimal("12.99"));
+        BookRequestDTO validDto = new BookRequestDTO("The Hobbit", "J.R.R. Tolkien", "Fantasy", new BigDecimal("12.99"));
 
         // 3. Validate
-        Set<ConstraintViolation<BookDTO>> violations = validator.validate(validDto);
+        Set<ConstraintViolation<BookRequestDTO>> violations = validator.validate(validDto);
 
         // 4. Assert that NO violations exist
         assertTrue(violations.isEmpty(), "Expected zero validation errors for a valid DTO, but got: " + violations);

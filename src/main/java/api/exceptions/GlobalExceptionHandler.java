@@ -43,6 +43,19 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles {@link NumberFormatException} for invalid numeric arguments.
+     *
+     * @param ex the exception containing the invalid argument details
+     * @return HTTP 400 Bad Request with a validation error response
+     */
+    @ExceptionHandler(NumberFormatException.class)
+    public ResponseEntity<ErrorResponse> handleNumberFormat(NumberFormatException ex) {
+        logger.warn("Number format error: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse("Invalid Number Format", ex.getMessage(), 400);
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    /**
      * Handles malformed JSON in request bodies.
      *
      * @param ex the exception thrown when JSON cannot be parsed

@@ -111,7 +111,7 @@ public class BookService {
 
     @Transactional
     public void deleteBookById(Long id) {
-        int deletedCount = repository.deleteBookById(id);
+        int deletedCount = repository.deleteBookById(id); // Returns the amount of rows deleted
         if (deletedCount == 0){
             throw new  BookNotFoundException("Couldn't find book of ID: " + id);
         }

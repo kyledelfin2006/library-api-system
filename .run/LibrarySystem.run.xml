@@ -1,0 +1,15 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="LibrarySystem" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <option name="DEBUG_MODE" value="true" />
+    <envs>
+      <env name="SPRING_DATASOURCE_PASSWORD" value="2006" />
+      <env name="SPRING_DATASOURCE_URL" value="jdbc:postgresql://localhost:5432/librarydb" />
+      <env name="SPRING_DATASOURCE_USERNAME" value="postgres" />
+    </envs>
+    <module name="library-api-system" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="app.LibraryApplication" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

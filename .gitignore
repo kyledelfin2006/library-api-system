@@ -58,7 +58,6 @@ buildNumber.properties
 .settings
 .springBeans
 .sts4-cache
-bin/
 .metadata/
 *.tmp
 *.bak
@@ -84,14 +83,12 @@ bin/
 # APPLICATION DATA (IMPORTANT!)
 # ============================================
 # Don't commit user data or database files
-Books.json
 *.db
 *.sqlite
 *.h2.db
 *.lock
 data/
 logs/
-*.log
 
 # ============================================
 # OS GENERATED FILES
@@ -110,11 +107,10 @@ Thumbs.db
 # ============================================
 # MISCELLANEOUS
 # ============================================
-*.lock
 *.pid
 *.gz
 *.zip
 *.tar
 *.rar
 .env
-books.txt
+.txt

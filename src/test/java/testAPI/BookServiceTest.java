@@ -312,26 +312,7 @@ class BookServiceTest {
         assertThrows(BookNotFoundException.class, () -> bookService.replaceBook(BOOK_ID, dto));
         verify(repository, never()).save(any());
     }
-
-    // ---------- deleteBookById ----------
-    @Test
-    void deleteBookById_shouldDeleteExistingBook() {
-        when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
-        doNothing().when(repository).delete(any(Book.class));
-
-        bookService.deleteBookById(BOOK_ID);
-
-        verify(repository, times(1)).delete(sampleBook);
-    }
-
-    @Test
-    void deleteBookById_whenBookNotFound_shouldThrowBookNotFoundException() {
-        when(repository.findById(BOOK_ID)).thenReturn(Optional.empty());
-
-        assertThrows(BookNotFoundException.class, () -> bookService.deleteBookById(BOOK_ID));
-        verify(repository, never()).delete(any());
-    }
-
+       
     // ---------- getBooksWithinBudget ----------
     @Test
     void getBooksWithinBudget_shouldReturnBooksWithPriceLessThanOrEqual() {

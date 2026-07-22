@@ -5,6 +5,7 @@ import api.manager.BookService;
 import api.models.Book;
 import api.models.BookDTO;
 import api.repository.BookRepository;
+import jakarta.validation.constraints.Positive;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,6 +13,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Sort;
+
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -36,7 +39,7 @@ class BookServiceTest {
     private final String TITLE = "Effective Java";
     private final String AUTHOR = "Joshua Bloch";
     private final String GENRE = "Programming";
-    private final Double PRICE = 45.0;
+    private final @Positive(message = "Price must be greater than 0") BigDecimal PRICE = 45.0;
 
     @BeforeEach
     void setUp() {
@@ -312,7 +315,7 @@ class BookServiceTest {
         assertThrows(BookNotFoundException.class, () -> bookService.replaceBook(BOOK_ID, dto));
         verify(repository, never()).save(any());
     }
-       
+
     // ---------- getBooksWithinBudget ----------
     @Test
     void getBooksWithinBudget_shouldReturnBooksWithPriceLessThanOrEqual() {

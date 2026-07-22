@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -16,11 +18,11 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     List<Book> findByTitleContainingIgnoreCase(String title);
     List<Book> findByAuthorContainingIgnoreCase(String author);
     List<Book> findByGenreContainingIgnoreCase(String genre);
-    List<Book> findByPriceLessThanEqual(double price);
+    List<Book> findByPriceLessThanEqual(BigDecimal price);
 
     @Query("SELECT b FROM Book b WHERE b.price BETWEEN :minPrice AND :maxPrice")
-    List<Book> findBooksByPriceBetween(@Param("minPrice") double minPrice,
-                                       @Param("maxPrice") double maxPrice);
+    List<Book> findBooksByPriceBetween(@Param("minPrice") BigDecimal minPrice,
+                                       @Param("maxPrice") BigDecimal maxPrice);
 
     // Finds the most expensive book
     Book findTopByOrderByPriceDesc();

@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -108,7 +109,7 @@ public class BookService {
         }
     }
 
-    public List<Book> getBooksWithinBudget(double maxPrice) {
+    public List<Book> getBooksWithinBudget(BigDecimal maxPrice) {
         return repository.findByPriceLessThanEqual(maxPrice);
     }
 

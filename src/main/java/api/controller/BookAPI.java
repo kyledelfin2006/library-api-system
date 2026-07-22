@@ -9,6 +9,8 @@
     import org.springframework.http.HttpStatus;
     import org.springframework.http.ResponseEntity;
     import org.springframework.web.bind.annotation.*;
+
+    import java.math.BigDecimal;
     import java.util.List;
     import java.util.Map;
     import java.util.concurrent.ConcurrentHashMap;
@@ -58,7 +60,7 @@
         }
 
         @GetMapping("/books/budget")
-        public ResponseEntity<List<Book>> budgetBooks(@RequestParam double maxPrice) {
+        public ResponseEntity<List<Book>> budgetBooks(@RequestParam BigDecimal maxPrice) {
                 List<Book> affordableBooks = manager.getBooksWithinBudget(maxPrice);
                 return ResponseEntity.ok(affordableBooks);
         }

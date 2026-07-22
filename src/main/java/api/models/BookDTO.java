@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
+import java.math.BigDecimal;
+
 @JsonIgnoreProperties(ignoreUnknown = true) // Ignores unknown fields
 public class BookDTO {
     @NotBlank(message = "Title cannot be empty")
@@ -20,13 +22,11 @@ public class BookDTO {
     @Size(max = 50, message = "Genre cannot exceed 50 characters")
     private String genre;
 
-    @NotNull(message = "Price cannot be empty")
-    @Positive(message = "Price must be greater than 0")
-    private Double price;
+    private @Positive(message = "Price must be greater than 0") BigDecimal price;
 
     public BookDTO() {}
 
-    public BookDTO(String title, String author, String genre, Double price) {
+    public BookDTO(String title, String author, String genre, @Positive(message = "Price must be greater than 0") BigDecimal price) {
         this.title = title;
         this.author = author;
         this.genre = genre;
@@ -42,7 +42,7 @@ public class BookDTO {
     public String getAuthor() {
         return author;
     }
-    public Double getPrice() {
+    public @Positive(message = "Price must be greater than 0") BigDecimal getPrice() {
         return price;
     }
 
@@ -55,7 +55,7 @@ public class BookDTO {
     public void setGenre(String genre) {
         this.genre = genre;
     }
-    public void setPrice(double price) {
+    public void setPrice(@Positive(message = "Price must be greater than 0") BigDecimal price) {
         this.price = price;
     }
 }

@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "books")
 @JsonPropertyOrder({"id", "title", "author", "genre", "price"})
@@ -26,14 +28,14 @@ public class Book {
     @Column(nullable = false, length = 50)
     private String genre;
 
-    @Positive(message = "Price must be greater than 0")
     @Column(nullable = false, precision =  10, scale = 2)
-    private double price;
+    @Positive(message = "Price must be greater than 0")
+    private BigDecimal price;
 
     // DEFAULT CONSTRUCTOR - REQUIRED for Jackson
     public Book() {}
 
-    public Book(String title, String author, String genre, double price) {
+    public Book(String title, String author, String genre, @Positive(message = "Price must be greater than 0") BigDecimal price) {
         this.title = title;
         this.author = author;
         this.genre = genre;
@@ -45,7 +47,7 @@ public class Book {
     public String getTitle() { return title; }
     public String getAuthor() { return author; }
     public String getGenre() { return genre; }
-    public double getPrice() { return price; }
+    public @Positive(message = "Price must be greater than 0") BigDecimal getPrice() { return price; }
 
     // Setters - Jackson uss these for deserialization
     // Setters - Unit testing use these for mock setups
@@ -55,7 +57,7 @@ public class Book {
     public void setTitle(String title) { this.title = title; }
     public void setAuthor(String author) { this.author = author; }
     public void setGenre(String genre) { this.genre = genre; }
-    public void setPrice(double price) { this.price = price; }
+    public void setPrice(@Positive(message = "Price must be greater than 0") BigDecimal price) { this.price = price; }
 
 
     @Override

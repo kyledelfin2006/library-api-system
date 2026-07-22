@@ -7,6 +7,7 @@ import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.Test;
+import java.math.BigDecimal;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -15,12 +16,12 @@ class BookTest {
 
     @Test
     void testCreateValidBook() {
-        Book book = new Book("1984", "Orwell", "Fiction", 15.99);
+        Book book = new Book("1984", "Orwell", "Fiction", new BigDecimal("15.99"));
 
         assertEquals("1984", book.getTitle());
         assertEquals("Orwell", book.getAuthor());
         assertEquals("Fiction", book.getGenre());
-        assertEquals(15.99, book.getPrice());
+        assertEquals(0, new BigDecimal("15.99").compareTo(book.getPrice()));
         // ID is null until the repository saves it and sets it via KeyHolder.
         // We do NOT test it here.
         assertNull(book.getId()); // This is the correct state after construction.
@@ -33,7 +34,7 @@ class BookTest {
         Validator validator = factory.getValidator();
 
         // 2. Create an INVALID DTO (empty title, null author, negative price)
-        BookDTO invalidDto = new BookDTO("", null, "Fiction", -5.0);
+        BookDTO invalidDto = new BookDTO("", null, "Fiction", new BigDecimal("-5.0"));
 
         // 3. Run the validation
         Set<ConstraintViolation<BookDTO>> violations = validator.validate(invalidDto);
@@ -58,7 +59,7 @@ class BookTest {
         Validator validator = factory.getValidator();
 
         // 2. Create a fully valid DTO
-        BookDTO validDto = new BookDTO("The Hobbit", "J.R.R. Tolkien", "Fantasy", 12.99);
+        BookDTO validDto = new BookDTO("The Hobbit", "J.R.R. Tolkien", "Fantasy", new BigDecimal("12.99"));
 
         // 3. Validate
         Set<ConstraintViolation<BookDTO>> violations = validator.validate(validDto);

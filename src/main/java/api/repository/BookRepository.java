@@ -6,10 +6,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Repository
@@ -19,6 +17,7 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     List<Book> findByAuthorContainingIgnoreCase(String author);
     List<Book> findByGenreContainingIgnoreCase(String genre);
     List<Book> findByPriceLessThanEqual(BigDecimal price);
+    List<Book> findPriceContaining(BigDecimal price);
 
     @Query("SELECT b FROM Book b WHERE b.price BETWEEN :minPrice AND :maxPrice")
     List<Book> findBooksByPriceBetween(@Param("minPrice") BigDecimal minPrice,
@@ -29,7 +28,7 @@ public interface BookRepository extends JpaRepository<Book, Long> {
 
 
    @Query("SELECT SUM(b.price) FROM Book b")
-   Optional<Double> sumTotalOfPrice();
+   Optional<BigDecimal> sumTotalOfPrice();
 
    @Query("SELECT b.genre, COUNT(b) FROM Book b GROUP BY b.genre")
    List<Object[]> getGenres();

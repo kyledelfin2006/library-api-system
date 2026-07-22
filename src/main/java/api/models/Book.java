@@ -2,6 +2,7 @@ package api.models;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
@@ -13,55 +14,57 @@ import java.math.BigDecimal;
 public class Book {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Matches Serial In PostgreSQL
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // Matches Serial/BIGSERIAL in PostgreSQL
     private Long id;
 
-    @NotNull(message = "Title cannot be null")
+    // Use @NotBlank for Strings to prevent empty spaces
+    @NotBlank(message = "Title cannot be blank")
     @Column(nullable = false, length = 100)
     private String title;
 
-    @NotNull(message = "Author cannot be null")
+    @NotBlank(message = "Author cannot be blank")
     @Column(nullable = false, length = 50)
     private String author;
 
-    @NotNull(message = "Genre cannot be null")
+    @NotBlank(message = "Genre cannot be blank")
     @Column(nullable = false, length = 50)
     private String genre;
 
-    @Column(nullable = false, precision =  10, scale = 2)
+    // Added @NotNull because @Positive allows null values by default
+    @NotNull(message = "Price is required")
     @Positive(message = "Price must be greater than 0")
+    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
-    // DEFAULT CONSTRUCTOR - REQUIRED for Jackson
+    // REQUIRED for JPA and Jackson deserialization
     public Book() {}
 
-    public Book(String title, String author, String genre, @Positive(message = "Price must be greater than 0") BigDecimal price) {
+    // Clean constructor without inline annotations
+    public Book(String title, String author, String genre, BigDecimal price) {
         this.title = title;
         this.author = author;
         this.genre = genre;
         this.price = price;
     }
 
-    // Getters
     public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
     public String getTitle() { return title; }
-    public String getAuthor() { return author; }
-    public String getGenre() { return genre; }
-    public @Positive(message = "Price must be greater than 0") BigDecimal getPrice() { return price; }
-
-    // Setters - Jackson uss these for deserialization
-    // Setters - Unit testing use these for mock setups
-    public void setId(Long id) {
-        this.id = id;
-    }
     public void setTitle(String title) { this.title = title; }
-    public void setAuthor(String author) { this.author = author; }
-    public void setGenre(String genre) { this.genre = genre; }
-    public void setPrice(@Positive(message = "Price must be greater than 0") BigDecimal price) { this.price = price; }
 
+    public String getAuthor() { return author; }
+    public void setAuthor(String author) { this.author = author; }
+
+    public String getGenre() { return genre; }
+    public void setGenre(String genre) { this.genre = genre; }
+
+    public BigDecimal getPrice() { return price; }
+    public void setPrice(BigDecimal price) { this.price = price; }
 
     @Override
     public String toString() {
-        return String.format("%-10s %-25s %-20s %-15s %10.2f", id, title, author, genre, price);
+        return String.format("%-10s %-25s %-20s %-15s %10.2f",
+                id != null ? id : "NEW", title, author, genre, price);
     }
 }

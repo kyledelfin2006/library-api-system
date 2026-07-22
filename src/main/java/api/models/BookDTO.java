@@ -8,8 +8,9 @@ import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 
-@JsonIgnoreProperties(ignoreUnknown = true) // Ignores unknown fields
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class BookDTO {
+
     @NotBlank(message = "Title cannot be empty")
     @Size(max = 100, message = "Title cannot exceed 100 characters")
     private String title;
@@ -22,40 +23,31 @@ public class BookDTO {
     @Size(max = 50, message = "Genre cannot exceed 50 characters")
     private String genre;
 
-    private @Positive(message = "Price must be greater than 0") BigDecimal price;
+    // Added @NotNull to ensure the client doesn't pass a null price
+    @NotNull(message = "Price is required")
+    @Positive(message = "Price must be greater than 0")
+    private BigDecimal price;
 
+    // No-arg constructor for Jackson deserialization
     public BookDTO() {}
 
-    public BookDTO(String title, String author, String genre, @Positive(message = "Price must be greater than 0") BigDecimal price) {
+    // Clean constructor without inline validation annotations
+    public BookDTO(String title, String author, String genre, BigDecimal price) {
         this.title = title;
         this.author = author;
         this.genre = genre;
         this.price = price;
     }
 
-    public String getTitle() {
-        return title;
-    }
-    public String getGenre() {
-        return genre;
-    }
-    public String getAuthor() {
-        return author;
-    }
-    public @Positive(message = "Price must be greater than 0") BigDecimal getPrice() {
-        return price;
-    }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
-    public void setAuthor(String author) {
-        this.author = author;
-    }
-    public void setGenre(String genre) {
-        this.genre = genre;
-    }
-    public void setPrice(@Positive(message = "Price must be greater than 0") BigDecimal price) {
-        this.price = price;
-    }
+    public String getAuthor() { return author; }
+    public void setAuthor(String author) { this.author = author; }
+
+    public String getGenre() { return genre; }
+    public void setGenre(String genre) { this.genre = genre; }
+
+    public BigDecimal getPrice() { return price; }
+    public void setPrice(BigDecimal price) { this.price = price; }
 }

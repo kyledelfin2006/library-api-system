@@ -75,7 +75,7 @@ Errors thrown anywhere in that chain (`IllegalArgumentException`, `BookNotFoundE
 src/
   main/
     java/
-      api/
+      app/
         controller/
           LibraryAPI.java            # REST endpoints
         exceptions/
@@ -130,9 +130,9 @@ README.md
 * **Budget filtering** — return all books at or under a given `maxPrice`.
 * **Sorting** by `title`, `author`, `genre`, `price`, or `id`; an unrecognized sort field returns an unsorted copy rather than erroring.
 * **Library statistics** — total book count, total inventory value, and the single most expensive book.
-* **Bean Validation on create** — `@Valid BookDTO` on `POST /api/books` enforces non-blank title/author/genre, length limits, and a strictly positive price before a `Book` is even constructed.
+* **Bean Validation on create** — `@Valid BookDTO` on `POST /app/books` enforces non-blank title/author/genre, length limits, and a strictly positive price before a `Book` is even constructed.
 * **Defense-in-depth validation** — even though `BookDTO` is validated at the controller boundary, `Book`'s own constructor independently re-validates title/author/genre/price, and `LibraryManager.validateBookInput()` checks again before construction. The same field can be rejected for the same reason at up to three different layers.
-* **Deliberately lenient PATCH** — `PATCH /api/books/{id}` accepts a plain `@RequestBody BookDTO` (no `@Valid`), so Bean Validation annotations are **not** enforced on updates. Instead, `LibraryManager.patchBook()` manually checks each field: blank/null string fields are silently skipped (left unchanged) rather than rejected, while a non-null price is still required to be `> 0`.
+* **Deliberately lenient PATCH** — `PATCH /app/books/{id}` accepts a plain `@RequestBody BookDTO` (no `@Valid`), so Bean Validation annotations are **not** enforced on updates. Instead, `LibraryManager.patchBook()` manually checks each field: blank/null string fields are silently skipped (left unchanged) rather than rejected, while a non-null price is still required to be `> 0`.
 * **Consistent JSON error contract** across 400/404/405/500 responses via `ErrorResponse`.
 
 ---
@@ -148,7 +148,7 @@ sequenceDiagram
     participant DB as PostgreSQL
     participant Err as GlobalExceptionHandler
 
-    C->>API: POST /api/books (BookDTO)
+    C->>API: POST /app/books (BookDTO)
     API->>API: @Valid Bean Validation
     alt validation fails
         API->>Err: MethodArgumentNotValidException
@@ -295,7 +295,7 @@ This confirms `LibraryManager.addBook` behaves correctly under concurrent calls 
 
 ### Quick smoke test
 ```bash
-curl http://localhost:8080/api/health
+curl http://localhost:8080/app/health
 # {"success":true,"message":"API is running","timestamp":...}
 ```
 
@@ -303,40 +303,40 @@ curl http://localhost:8080/api/health
 
 | Method | Endpoint | Status Codes | Description |
 |--------|----------|---------------|--------------|
-| `GET` | `/api/health` | 200 | Liveness check |
-| `GET` | `/api/books` | 200 | Get all books |
-| `GET` | `/api/books/{id}` | 200, 404 | Get a single book by ID |
-| `POST` | `/api/books` | 201, 400 | Add a new book (`@Valid`-checked body) |
-| `PATCH` | `/api/books/{id}` | 200, 400, 404 | Partially update a book (no `@Valid`; manual field checks) |
-| `DELETE` | `/api/books/{id}` | 200, 404 | Delete a book by ID |
-| `GET` | `/api/books/search?type=&value=` | 200, 400 | Search by `author`, `title`, `genre`, or `price` |
-| `GET` | `/api/books/budget?maxPrice=` | 200, 400 | Books at or below a given price |
-| `GET` | `/api/books/sorted?by=` | 200 | Sort by `title`, `author`, `genre`, `price`, or `id` |
-| `GET` | `/api/books/stats` | 200 | Total books, total value, most expensive book |
+| `GET` | `/app/health` | 200 | Liveness check |
+| `GET` | `/app/books` | 200 | Get all books |
+| `GET` | `/app/books/{id}` | 200, 404 | Get a single book by ID |
+| `POST` | `/app/books` | 201, 400 | Add a new book (`@Valid`-checked body) |
+| `PATCH` | `/app/books/{id}` | 200, 400, 404 | Partially update a book (no `@Valid`; manual field checks) |
+| `DELETE` | `/app/books/{id}` | 200, 404 | Delete a book by ID |
+| `GET` | `/app/books/search?type=&value=` | 200, 400 | Search by `author`, `title`, `genre`, or `price` |
+| `GET` | `/app/books/budget?maxPrice=` | 200, 400 | Books at or below a given price |
+| `GET` | `/app/books/sorted?by=` | 200 | Sort by `title`, `author`, `genre`, `price`, or `id` |
+| `GET` | `/app/books/stats` | 200 | Total books, total value, most expensive book |
 
 ### Example requests
 ```bash
 # Add a book
-curl -X POST http://localhost:8080/api/books \
+curl -X POST http://localhost:8080/app/books \
   -H "Content-Type: application/json" \
   -d '{"title":"1984","author":"Orwell","genre":"Fiction","price":15.99}'
 
 # Partially update just the price (id is a Postgres-generated Long, e.g. 1)
-curl -X PATCH http://localhost:8080/api/books/1 \
+curl -X PATCH http://localhost:8080/app/books/1 \
   -H "Content-Type: application/json" \
   -d '{"price":12.99}'
 
 # Search by author (partial, case-insensitive)
-curl "http://localhost:8080/api/books/search?type=author&value=Orwell"
+curl "http://localhost:8080/app/books/search?type=author&value=Orwell"
 
 # Books within budget
-curl "http://localhost:8080/api/books/budget?maxPrice=20"
+curl "http://localhost:8080/app/books/budget?maxPrice=20"
 
 # Sorted by price
-curl "http://localhost:8080/api/books/sorted?by=price"
+curl "http://localhost:8080/app/books/sorted?by=price"
 
 # Library-wide stats
-curl http://localhost:8080/api/books/stats
+curl http://localhost:8080/app/books/stats
 ```
 
 ### Running the test suite
@@ -355,11 +355,11 @@ mvn test
 | Symptom | Likely Cause | Resolution |
 |---------|--------------|------------|
 | App fails to start with a datasource/property-placeholder error | `SPRING_DATASOURCE_URL`/`USERNAME`/`PASSWORD` env vars aren't set — `application.properties` has no fallback defaults | Export all three variables, or supply them via `.env` + `docker-compose.yml` |
-| `400 Bad Request` on `POST /api/books` even with a JSON body | A required field (`title`, `author`, `genre`) is blank, or `price` is missing/not positive | Check `ErrorResponse.details` — it lists every failing `@NotBlank`/`@Size`/`@Positive` constraint |
+| `400 Bad Request` on `POST /app/books` even with a JSON body | A required field (`title`, `author`, `genre`) is blank, or `price` is missing/not positive | Check `ErrorResponse.details` — it lists every failing `@NotBlank`/`@Size`/`@Positive` constraint |
 | `400 Bad Request` — "Invalid JSON format in request body" | Malformed JSON syntax, or missing `Content-Type: application/json` header | Validate the payload and confirm the header is set |
 | `PATCH` silently ignores a field you sent | Blank/whitespace-only string fields (or a `null`) are treated as "no change" by design, not as an error | Send a non-blank value if you intend to update that field |
 | Unmapped routes return a generic Spring error page instead of the expected JSON 404 | `NoHandlerFoundException` is only thrown (and thus only caught by `GlobalExceptionHandler`) if `spring.mvc.throw-exception-if-no-handler-found=true` and `spring.web.resources.add-mappings=false` are set — neither appears in the current `application.properties` | Add both properties if you want unmapped routes to return the app's standard `ErrorResponse` JSON instead of Spring Boot's default error page |
-| `404 Not Found` on a valid-looking route | Typo in the path, or the resource ID doesn't exist | Compare against the [API Endpoint Reference](#setup--installation); `GET /api/books` first to confirm the ID exists |
+| `404 Not Found` on a valid-looking route | Typo in the path, or the resource ID doesn't exist | Compare against the [API Endpoint Reference](#setup--installation); `GET /app/books` first to confirm the ID exists |
 | `405 Method Not Allowed` | Wrong HTTP verb for an endpoint (e.g., `PUT` instead of `PATCH`) | Check the supported-methods detail returned in the error body |
 | `500 Internal Server Error` mentioning SQL | Connection failure, missing table, or constraint violation against Postgres | Confirm the `db` container is up, `schema.sql` ran, and the datasource env vars point at the right host/port |
 | Search returns nothing when you expect matches | `type` isn't one of `author`, `title`, `genre`, `price`, or `value` has a typo | Text search is `contains`-based and case-insensitive; price search requires a parsable numeric value |
@@ -403,7 +403,7 @@ CREATE TABLE IF NOT EXISTS books (
 * **Add an integration/controller test layer.** Current tests cover `Book` and `LibraryManager` in isolation; there is no `@WebMvcTest` or `@SpringBootTest` coverage exercising `LibraryAPI` and `GlobalExceptionHandler` end-to-end through real HTTP requests, or `PostgresBookRepository` against a real (or Testcontainers-managed) database.
 * **Resolve the Java version mismatch in `pom.xml`.** `<java.version>` is `25` while `maven.compiler.source`/`target` are `21`, and an inline comment references Spring Boot 3.4.x despite the parent POM declaring `4.1.0` — align these to avoid confusion for contributors building the project.
 * **Build the jar inside the Docker image.** The current `Dockerfile` copies a pre-built `target/*.jar`, requiring a local `mvn package` before every `docker-compose up --build`. A multi-stage build (Maven build stage → slim runtime stage) would make the image self-sufficient.
-* **Pagination for `GET /api/books`.** Currently returns the entire catalog in one response; this won't scale once the book count grows meaningfully.
+* **Pagination for `GET /app/books`.** Currently returns the entire catalog in one response; this won't scale once the book count grows meaningfully.
 * **API documentation via OpenAPI/Swagger.** Auto-generated, interactive docs would replace the current need to read source or this README to discover request/response shapes.
 * **Authentication/authorization.** All endpoints are currently open with no access control — a real deployment would need at minimum an API key or token-based scheme.
 * **Enforce validation consistently on `PATCH`.** Currently `PATCH` deliberately bypasses `@Valid`/Bean Validation in favor of ad-hoc null/blank checks in `LibraryManager`; consider a dedicated "patch DTO" or partial-validation strategy so update rules are as explicit and testable as the create path.

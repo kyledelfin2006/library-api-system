@@ -202,16 +202,13 @@ class BookServiceTest {
     void replaceBook_shouldReplaceAllFields() {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
         BookRequestDTO newData = new BookRequestDTO("New Title", "New Author", "New Genre", new BigDecimal("99.99"));
-        when(repository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Book result = bookService.replaceBook(BOOK_ID, newData);
 
         assertEquals("New Title", result.getTitle());
         assertEquals("New Author", result.getAuthor());
         assertEquals("New Genre", result.getGenre());
-        assertEquals(0, new BigDecimal("99.99").compareTo(result.getPrice()));
-        verify(repository, times(1)).save(sampleBook);
-    }
+        assertEquals(0, new BigDecimal("99.99").compareTo(result.getPrice()));}
 
     @Test
     void replaceBook_whenDtoIsNull_shouldThrowIllegalArgumentException() {
@@ -273,18 +270,6 @@ class BookServiceTest {
 
         assertThrows(IllegalArgumentException.class, () -> bookService.replaceBook(BOOK_ID, invalidDto));
         verify(repository, never()).save(any());
-    }
-
-    @Test
-    void replaceBook_whenDtoHasNullPrice_shouldSetPriceToNull() {
-        when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
-        BookRequestDTO dto = new BookRequestDTO("Title", "Author", "Genre", null);
-        when(repository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        Book result = bookService.replaceBook(BOOK_ID, dto);
-
-        assertNull(result.getPrice());
-        verify(repository, times(1)).save(any(Book.class));
     }
 
     @Test

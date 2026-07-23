@@ -1,6 +1,5 @@
     package app.book.controller;
 
-    import app.LibraryApplication;
     import app.book.dto.BookResponseDTO;
     import app.book.dto.LibraryStatisticsDTO;
     import app.book.entity.Book;
@@ -16,7 +15,6 @@
     import java.math.BigDecimal;
     import java.util.List;
     import java.util.Map;
-    import java.util.concurrent.ConcurrentHashMap;
     import org.springframework.data.domain.Page;
     import org.springframework.data.domain.Pageable;
     import org.springframework.data.web.PageableDefault;

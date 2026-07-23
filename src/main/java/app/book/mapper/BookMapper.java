@@ -48,7 +48,7 @@ public class BookMapper {
 
     /**
      * Converts a BookRequestDTO to a new Book entity.
-     * Useful for create operations. (i.e. PUT)
+     * Useful for create operations. (i.e. POST)
      */
     public Book toEntity(BookRequestDTO dto) {
         if (dto == null) {
@@ -60,6 +60,19 @@ public class BookMapper {
                 dto.getGenre(),
                 dto.getPrice()
         );
+    }
+
+    /**
+     * Converts a BookRequestDTO to a new Book entity.
+     * Useful for create operations. (i.e. )
+     */
+    public void updateBookFromDto(BookRequestDTO dto, Book existingBook) {
+        if (dto == null) return;
+
+        existingBook.setTitle(dto.getTitle());
+        existingBook.setAuthor(dto.getAuthor());
+        existingBook.setGenre(dto.getGenre());
+        existingBook.setPrice(dto.getPrice());
     }
 
 

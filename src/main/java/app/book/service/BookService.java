@@ -22,30 +22,26 @@ public class BookService {
     private final BookRepository repository;
     private final BookMapper mapper;
 
-
     public BookService(BookRepository repository, BookMapper mapper) {
         this.repository = repository;
         this.mapper = mapper;
     }
 
-    public Page<Book> getBooks(Pageable pageable){
-       return repository.findAll(pageable);
+    public Page<Book> getBooks(Pageable pageable) {
+        return repository.findAll(pageable);
     }
 
     @Transactional
-    public Book addBook(BookRequestDTO input){
-        Book newBook = new Book(
-                input.getTitle(),
-                input.getAuthor(),
-                input.getGenre(),
-                input.getPrice());
-
+    public Book addBook(BookRequestDTO input) {
+        // Use the mapper to convert DTO → Entity (keeps construction centralised)
+        Book newBook = mapper.toEntity(input);
         repository.save(newBook);
         return newBook;
     }
 
-    public Book findBookById(Long id){
-        return repository.findById(id).orElseThrow(() -> new BookNotFoundException("Couldn't find book of ID: " + id ));
+    public Book findBookById(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new BookNotFoundException("Couldn't find book of ID: " + id));
     }
 
     // Partial updates
@@ -81,20 +77,20 @@ public class BookService {
     @Transactional
     public Book replaceBook(Long id, BookRequestDTO updates) {
         // 1. Fetch the existing book (throws 404 if not found)
-        Book existingBook = findBookById(id); // Loaded from DB
+        Book existingBook = findBookById(id);
 
         // 2. Update entire entity using BookMapper
         mapper.updateBookFromDto(updates, existingBook);
 
         // 3. Persist and return managed book entity through dirty checking
-        return  existingBook;
-        }
+        return existingBook;
+    }
 
     @Transactional
     public void deleteBookById(Long id) {
         int deletedCount = repository.deleteBookById(id); // Returns the amount of rows deleted
-        if (deletedCount == 0){ // If no row is deleted, it means no id matched that book to delete.
-            throw new  BookNotFoundException("Couldn't find book of ID: " + id);
+        if (deletedCount == 0) { // If no row is deleted, it means no id matched that book to delete.
+            throw new BookNotFoundException("Couldn't find book of ID: " + id);
         }
     }
 
@@ -103,29 +99,29 @@ public class BookService {
     }
 
     public List<Book> getBooksInPriceRange(BigDecimal min, BigDecimal max) {
-            return repository.findBooksByPriceBetween(min,max);
+        return repository.findBooksByPriceBetween(min, max);
     }
 
     public List<Book> searchBooks(String type, String value) {
-       String formattedType = type.trim().toLowerCase();
+        String formattedType = type.trim().toLowerCase();
 
-       switch (formattedType) {
-           case "author":
-               return repository.findByAuthorContainingIgnoreCase(value);
-           case "title":
-               return repository.findByTitleContainingIgnoreCase(value);
-           case "genre":
-               return repository.findByGenreContainingIgnoreCase(value);
-           case  "price":
-               try {
-                   BigDecimal price = new BigDecimal(value);
-                   return repository.findByPrice(price);
-               } catch (NumberFormatException e) {
-               throw new IllegalArgumentException("Invalid price format value:" + value);
-               }
-           default: // Handler for invalid types
-               throw new IllegalArgumentException("Invalid search type: " + type + ". Valid types: author, title, genre, price");
-       }
+        switch (formattedType) {
+            case "author":
+                return repository.findByAuthorContainingIgnoreCase(value);
+            case "title":
+                return repository.findByTitleContainingIgnoreCase(value);
+            case "genre":
+                return repository.findByGenreContainingIgnoreCase(value);
+            case "price":
+                try {
+                    BigDecimal price = new BigDecimal(value);
+                    return repository.findByPrice(price);
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException("Invalid price format value: " + value);
+                }
+            default: // Handler for invalid types
+                throw new IllegalArgumentException("Invalid search type: " + type + ". Valid types: author, title, genre, price");
+        }
     }
 
     /**
@@ -145,12 +141,12 @@ public class BookService {
      * @return a map containing genre names as keys and their corresponding book counts as values
      * @throws NullPointerException if any genre is {@code null} (consider filtering before collecting)
      */
-    public Map<String,Long> getGenreDistribution(){
+    public Map<String, Long> getGenreDistribution() {
         return repository.getGenres().stream()
                 .collect(Collectors.toMap(
                         row -> (String) row[0], // typecasting to appropriate data type
                         row -> (Long) row[1] // Maps the row in the getGenres() array list
-            ));
+                ));
     }
 
     public List<Book> getBooksSortedBy(String field) {
@@ -171,8 +167,18 @@ public class BookService {
         return repository.findAll(sort);
     }
 
+    /**
+     * Returns library statistics as a DTO containing total books, total value,
+     * and the most expensive book (converted to {@link BookResponseDTO}).
+     * <p>
+     * This method combines two repository calls:
+     * - One for COUNT and SUM (using {@code getCountAndTotalValue()})
+     * - One for the most expensive book (using {@code findTopByOrderByPriceDesc()})
+     * </p>
+     *
+     * @return a fully populated {@link LibraryStatisticsDTO}
+     */
     public LibraryStatisticsDTO getLibraryStatistics() {
-
         // 1. Get array of references from repository
         Object[] stats = repository.getCountAndTotalValue();
 
@@ -185,21 +191,24 @@ public class BookService {
         // 4. Get most expensive book from repository
         Book mostExpensive = repository.findTopByOrderByPriceDesc();
 
-        // 5. Return DTO with DTO from step 4.
-        return new LibraryStatisticsDTO(totalBooks, totalValue, mapper.toResponseDTO(mostExpensive));
+        // 5. Convert the most expensive Book entity to a BookResponseDTO (or null if none)
+        BookResponseDTO mostExpensiveDTO = (mostExpensive != null) ? mapper.toResponseDTO(mostExpensive) : null;
+
+        // 6. Return DTO with DTO from step 5.
+        return new LibraryStatisticsDTO(totalBooks, totalValue, mostExpensiveDTO);
     }
+
+    // ---------------------- Individual statistics (used elsewhere) ----------------------
 
     public BigDecimal getTotalLibraryValue() {
         return repository.sumTotalOfPrice().orElse(BigDecimal.ZERO);
     }
 
-    public Long countBooks(){
+    public Long countBooks() {
         return repository.count();
     }
 
-    public Book findMostExpensiveBook(){
+    public Book findMostExpensiveBook() {
         return repository.findTopByOrderByPriceDesc();
     }
 }
-
-

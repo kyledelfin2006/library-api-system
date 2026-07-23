@@ -4,6 +4,8 @@ import app.book.dto.BookRequestDTO;
 import app.book.dto.BookResponseDTO;
 import app.book.entity.Book;
 import org.springframework.stereotype.Component;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class BookMapper {
@@ -27,6 +29,21 @@ public class BookMapper {
                 book.getGenre(),
                 book.getPrice()
         );
+    }
+
+    /**
+     * Converts a list of Book entities to a list of BookResponseDTO's.
+     *
+     * @param books the list to convert (could contain null)
+     * @return the list of response DTO's, or null if input is null
+     */
+    public List<BookResponseDTO> toResponseDTOList(List<Book> books){
+        if (books == null || books.isEmpty()) {
+            return  null;
+        }
+
+        return books.stream().map(this::toResponseDTO).collect(Collectors.toList());
+
     }
 
     /**

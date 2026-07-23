@@ -54,18 +54,18 @@
 
         // Search books
         @GetMapping("/search")
-        public ResponseEntity<List<Book>> searchBooks(
+        public ResponseEntity<List<BookResponseDTO>> searchBooks(
                 @RequestParam String type,
                 @RequestParam String value) {
 
             List<Book> foundBooks = manager.searchBooks(type, value);
-            return ResponseEntity.ok(foundBooks);
+            return ResponseEntity.ok(mapper.toResponseDTOList(foundBooks));
         }
 
         @GetMapping("/budget")
-        public ResponseEntity<List<Book>> budgetBooks(@RequestParam BigDecimal maxPrice) {
+        public ResponseEntity<List<BookResponseDTO>> budgetBooks(@RequestParam BigDecimal maxPrice) {
                 List<Book> affordableBooks = manager.getBooksWithinBudget(maxPrice);
-                return ResponseEntity.ok(affordableBooks);
+                return ResponseEntity.ok(mapper.toResponseDTOList(affordableBooks));
         }
 
         // Add a new book (validated)

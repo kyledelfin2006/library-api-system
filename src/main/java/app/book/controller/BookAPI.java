@@ -104,9 +104,16 @@
         }
 
         @GetMapping("/sorted")
-        public ResponseEntity<List<Book>> getSortedBooks(
+        public ResponseEntity<List<BookResponseDTO>> getSortedBooks(
                 @RequestParam(required = false, defaultValue = "title") String category) {
-            return ResponseEntity.ok(manager.getBooksSortedBy(category));
+
+            // 1. Get book list in book entity type
+            List<Book> bookList = manager.getBooksSortedBy(category);
+
+            // 2. Map book entity list to DTO list
+            List<BookResponseDTO> dtoList = mapper.toResponseDTOList(bookList);
+
+            return ResponseEntity.ok(dtoList);
         }
 
         @GetMapping("/genre")

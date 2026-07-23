@@ -122,14 +122,12 @@
         }
 
         @GetMapping("/price")
-        public ResponseEntity<List<Book>> getPriceRangedBooks(
-                @RequestParam String minPrice,
-                @RequestParam String maxPrice
+        public ResponseEntity<List<BookResponseDTO>> getPriceRangedBooks(
+                @RequestParam BigDecimal minPrice,
+                @RequestParam BigDecimal maxPrice
         ){
-            return  ResponseEntity.ok(manager.getBooksInPriceRange(minPrice,maxPrice));
+            return  ResponseEntity.ok(mapper.toResponseDTOList(manager.getBooksInPriceRange(minPrice,maxPrice)));
         }
-
-
 
         // Patch (partial update)
         @PatchMapping("/{id}")

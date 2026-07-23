@@ -101,14 +101,8 @@ public class BookService {
         return repository.findByPriceLessThanEqual(maxPrice);
     }
 
-    public List<Book> getBooksInPriceRange(String minPrice, String maxPrice) {
-        try{
-            BigDecimal min = new BigDecimal(minPrice);
-            BigDecimal max = new BigDecimal(maxPrice);
+    public List<Book> getBooksInPriceRange(BigDecimal min, BigDecimal max) {
             return repository.findBooksByPriceBetween(min,max);
-        } catch (NumberFormatException e){
-            throw new NumberFormatException("Price must be a number.");
-        }
     }
 
     public List<Book> searchBooks(String type, String value) {

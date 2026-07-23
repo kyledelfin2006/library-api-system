@@ -24,12 +24,12 @@
     @RequestMapping("/app/books")
     public class BookAPI {
 
-        private final BookService manager;
+        private final BookService service;
         private final BookMapper mapper;
 
         @Autowired
-        public BookAPI(BookService manager, BookMapper mapper) {
-            this.manager = manager;
+        public BookAPI(BookService service, BookMapper mapper) {
+            this.service = service;
             this.mapper = mapper;
         }
 
@@ -43,10 +43,10 @@
         @GetMapping("/stats")
         public ResponseEntity<Map<String,Object>> getStats() {
             Map<String, Object> stats = new ConcurrentHashMap<>();
-            stats.put("totalBooks", manager.countBooks());
-            stats.put("totalValue", manager.getTotalLibraryValue());
+            stats.put("totalBooks", service.countBooks());
+            stats.put("totalValue", service.getTotalLibraryValue());
 
-            Book mostExpensive = manager.findMostExpensiveBook();
+            Book mostExpensive = service.findMostExpensiveBook();
             stats.put("mostExpensiveBook", mostExpensive != null ? mostExpensive : "No books in library");
 
             return ResponseEntity.ok(stats);
@@ -58,20 +58,20 @@
                 @RequestParam String type,
                 @RequestParam String value) {
 
-            List<Book> foundBooks = manager.searchBooks(type, value);
+            List<Book> foundBooks = service.searchBooks(type, value);
             return ResponseEntity.ok(mapper.toResponseDTOList(foundBooks));
         }
 
         @GetMapping("/budget")
         public ResponseEntity<List<BookResponseDTO>> budgetBooks(@RequestParam BigDecimal maxPrice) {
-                List<Book> affordableBooks = manager.getBooksWithinBudget(maxPrice);
+                List<Book> affordableBooks = service.getBooksWithinBudget(maxPrice);
                 return ResponseEntity.ok(mapper.toResponseDTOList(affordableBooks));
         }
 
         // Add a new book (validated)
         @PostMapping("/add")
         public ResponseEntity<ApiResponse<BookResponseDTO>> addBook(@Valid @RequestBody BookRequestDTO input) {
-            Book newBook = manager.addBook(input);
+            Book newBook = service.addBook(input);
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(new ApiResponse<>(true, "Book Added Successfully", mapper.toResponseDTO(newBook)));
         }
@@ -79,14 +79,14 @@
         // Get book by ID
         @GetMapping("/{id}")
         public ResponseEntity<BookResponseDTO> getBookById(@PathVariable Long id) {
-            Book book = manager.findBookById(id);
+            Book book = service.findBookById(id);
             return ResponseEntity.ok(mapper.toResponseDTO(book));
         }
 
         // Delete a book
         @DeleteMapping("/{id}")
         public ResponseEntity<ApiResponse<Void>> deleteBook(@PathVariable Long id) {
-            manager.deleteBookById(id); // Throws Exception in case
+            service.deleteBookById(id); // Throws Exception in case
             return ResponseEntity.ok(new ApiResponse<>(true, "Book deleted successfully"));
         }
 
@@ -95,7 +95,7 @@
                @PageableDefault(size = 12, sort = "id") Pageable pageable) {
 
             // 1. Get page as book entity
-            Page<Book> page = manager.getBooks(pageable);
+            Page<Book> page = service.getBooks(pageable);
 
             // 2. Map from book entity to response dto
             Page<BookResponseDTO> dtopage = page.map(mapper::toResponseDTO);
@@ -108,7 +108,7 @@
                 @RequestParam(required = false, defaultValue = "title") String category) {
 
             // 1. Get book list in book entity type
-            List<Book> bookList = manager.getBooksSortedBy(category);
+            List<Book> bookList = service.getBooksSortedBy(category);
 
             // 2. Map book entity list to DTO list
             List<BookResponseDTO> dtoList = mapper.toResponseDTOList(bookList);
@@ -118,7 +118,7 @@
 
         @GetMapping("/genre")
         public ResponseEntity<Map<String, Long>> getGenre() {
-            return ResponseEntity.ok(manager.getGenreDistribution());
+            return ResponseEntity.ok(service.getGenreDistribution());
         }
 
         @GetMapping("/price")
@@ -126,7 +126,7 @@
                 @RequestParam BigDecimal minPrice,
                 @RequestParam BigDecimal maxPrice
         ){
-            List<Book> bookList = manager.getBooksInPriceRange(minPrice,maxPrice);
+            List<Book> bookList = service.getBooksInPriceRange(minPrice,maxPrice);
             List<BookResponseDTO> dtoList = mapper.toResponseDTOList(bookList);
             return ResponseEntity.ok(dtoList);
         }
@@ -137,7 +137,7 @@
                 @PathVariable Long id,
                 @RequestBody BookRequestDTO updates) { // No @Valid to allow null values
 
-            Book updated = manager.patchBook(id, updates);
+            Book updated = service.patchBook(id, updates);
             return ResponseEntity.ok(
                     new ApiResponse<>(true,"Book updated successfully", mapper.toResponseDTO(updated))
             );
@@ -150,7 +150,7 @@
                 @Valid @RequestBody BookRequestDTO updates){
 
             // Update book
-             Book updated = manager.replaceBook(id,updates);
+             Book updated = service.replaceBook(id,updates);
             return ResponseEntity.ok(
                     new ApiResponse<>(true,
                             "Book updated successfully",

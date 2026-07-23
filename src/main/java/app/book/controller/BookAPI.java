@@ -139,19 +139,22 @@
 
             Book updated = manager.patchBook(id, updates);
             return ResponseEntity.ok(
-                    new ApiResponse<>(true,
-                    "Book updated successfully", mapper.toResponseDTO(updated))
+                    new ApiResponse<>(true,"Book updated successfully", mapper.toResponseDTO(updated))
             );
         }
 
         // Put (complete update)
         @PutMapping("/{id}")
-        public ResponseEntity<ApiResponse<Book>> replaceBook(
+        public ResponseEntity<ApiResponse<BookResponseDTO>> replaceBook(
                 @PathVariable Long id,
                 @Valid @RequestBody BookRequestDTO updates){
 
+            // Update book
              Book updated = manager.replaceBook(id,updates);
-            return ResponseEntity.ok(new ApiResponse<>(true, "Book updated successfully", updated));
+            return ResponseEntity.ok(
+                    new ApiResponse<>(true,
+                            "Book updated successfully",
+                            mapper.toResponseDTO(updated)));
         }
     }
 

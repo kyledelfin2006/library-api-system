@@ -126,17 +126,22 @@
                 @RequestParam BigDecimal minPrice,
                 @RequestParam BigDecimal maxPrice
         ){
-            return  ResponseEntity.ok(mapper.toResponseDTOList(manager.getBooksInPriceRange(minPrice,maxPrice)));
+            List<Book> bookList = manager.getBooksInPriceRange(minPrice,maxPrice);
+            List<BookResponseDTO> dtoList = mapper.toResponseDTOList(bookList);
+            return ResponseEntity.ok(dtoList);
         }
 
         // Patch (partial update)
         @PatchMapping("/{id}")
-        public ResponseEntity<ApiResponse<Book>> patchBook(
+        public ResponseEntity<ApiResponse<BookResponseDTO>> patchBook(
                 @PathVariable Long id,
                 @RequestBody BookRequestDTO updates) { // No @Valid to allow null values
 
             Book updated = manager.patchBook(id, updates);
-            return ResponseEntity.ok(new ApiResponse<>(true, "Book updated successfully", updated));
+            return ResponseEntity.ok(
+                    new ApiResponse<>(true,
+                    "Book updated successfully", mapper.toResponseDTO(updated))
+            );
         }
 
         // Put (complete update)

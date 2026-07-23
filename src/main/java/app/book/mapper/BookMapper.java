@@ -4,6 +4,8 @@ import app.book.dto.BookRequestDTO;
 import app.book.dto.BookResponseDTO;
 import app.book.entity.Book;
 import org.springframework.stereotype.Component;
+
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,7 +41,7 @@ public class BookMapper {
      */
     public List<BookResponseDTO> toResponseDTOList(List<Book> books){
         if (books == null || books.isEmpty()) {
-            return  null;
+            return Collections.emptyList();
         }
 
         return books.stream().map(this::toResponseDTO).collect(Collectors.toList());

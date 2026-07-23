@@ -33,7 +33,7 @@ public class BookService {
 
     @Transactional
     public Book addBook(BookRequestDTO input) {
-        // Use the mapper to convert DTO → Entity (keeps construction centralised)
+        // Use the mapper to convert DTO → Entity (keeps construction centralized)
         Book newBook = mapper.toEntity(input);
         repository.save(newBook);
         return newBook;

@@ -1,6 +1,8 @@
     package app.book.controller;
 
+    import app.LibraryApplication;
     import app.book.dto.BookResponseDTO;
+    import app.book.dto.LibraryStatisticsDTO;
     import app.book.entity.Book;
     import app.book.dto.BookRequestDTO;
     import app.book.mapper.BookMapper;
@@ -41,15 +43,13 @@
         }
 
         @GetMapping("/stats")
-        public ResponseEntity<Map<String,Object>> getStats() {
-            Map<String, Object> stats = new ConcurrentHashMap<>();
-            stats.put("totalBooks", service.countBooks());
-            stats.put("totalValue", service.getTotalLibraryValue());
+        public ResponseEntity<LibraryStatisticsDTO> getStats() {
 
-            Book mostExpensive = service.findMostExpensiveBook();
-            stats.put("mostExpensiveBook", mostExpensive != null ? mostExpensive : "No books in library");
+            // 1. Create libraryStatsDTO pre-built dto from service
+            LibraryStatisticsDTO dto = service.getLibraryStatistics();
 
-            return ResponseEntity.ok(stats);
+            // 2. Return object
+            return ResponseEntity.ok(dto);
         }
 
         // Search books

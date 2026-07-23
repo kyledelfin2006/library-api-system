@@ -159,6 +159,7 @@ public class BookService {
         // Validate allowed fields to avoid SQL injection through Sort.by()
         Set<String> allowedFields = Set.of("title", "author", "id", "price", "genre");
 
+        // If not allowed throw exception
         if (!allowedFields.contains(fieldName)) {
             throw new IllegalArgumentException("Invalid sort field: " + field);
         }

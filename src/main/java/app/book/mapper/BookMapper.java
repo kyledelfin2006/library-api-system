@@ -3,10 +3,12 @@ package app.book.mapper;
 import app.book.dto.BookRequestDTO;
 import app.book.dto.BookResponseDTO;
 import app.book.entity.Book;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Component
 public class BookMapper {
 
 
@@ -63,8 +65,8 @@ public class BookMapper {
     }
 
     /**
-     * Converts a BookRequestDTO to a new Book entity.
-     * Useful for create operations. (i.e. )
+     * Updates an existing BookEntity from a BookRequestDTO.
+     * Useful for changing entire entities. (i.e. PUT)
      */
     public void updateBookFromDto(BookRequestDTO dto, Book existingBook) {
         if (dto == null) return;

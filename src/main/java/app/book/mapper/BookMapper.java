@@ -32,22 +32,6 @@ public class BookMapper {
         );
     }
 
-
-    /**
-     * Converts a list of Book entities to a list of BookResponseDTO's.
-     *
-     * @param books the list to convert (could contain null)
-     * @return the list of response DTO's, or null if input is null
-     */
-    public List<BookResponseDTO> toResponseDTOList(List<Book> books){
-        if (books == null || books.isEmpty()) {
-            return  null;
-        }
-
-        return books.stream().map(this::toResponseDTO).collect(Collectors.toList());
-
-    }
-
     /**
      * Converts a BookRequestDTO to a new Book entity.
      * Useful for create operations. (i.e. POST)

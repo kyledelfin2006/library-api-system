@@ -1,6 +1,7 @@
 package app.book.service;
 
 import app.book.dto.BookResponseDTO;
+import app.book.dto.LibraryStatisticsDTO;
 import app.book.exceptions.BookNotFoundException;
 import app.book.entity.Book;
 import app.book.dto.BookRequestDTO;
@@ -168,6 +169,24 @@ public class BookService {
 
         Sort sort = Sort.by(fieldName).ascending();
         return repository.findAll(sort);
+    }
+
+    public LibraryStatisticsDTO getLibraryStatistics() {
+
+        // 1. Get array of references from repository
+        Object[] stats = repository.getCountAndTotalValue();
+
+        // 2. Set total books from array
+        Long totalBooks = (Long) stats[0];
+
+        // 3. Set total value books from array
+        BigDecimal totalValue = (BigDecimal) stats[1];
+
+        // 4. Get most expensive book from repository
+        Book mostExpensive = repository.findTopByOrderByPriceDesc();
+
+        // 5. Return DTO with DTO from step 4.
+        return new LibraryStatisticsDTO(totalBooks, totalValue, mapper.toResponseDTO(mostExpensive));
     }
 
     public BigDecimal getTotalLibraryValue() {

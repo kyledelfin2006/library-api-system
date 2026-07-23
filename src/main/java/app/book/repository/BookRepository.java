@@ -31,10 +31,10 @@ public interface BookRepository extends JpaRepository<Book, Long> {
    Optional<BigDecimal> sumTotalOfPrice();
 
    @Query("SELECT b.genre, COUNT(b) FROM Book b GROUP BY b.genre")
-   List<Object[]> getGenres();
+   List<Object[]> getGenres(); // Used in Genre Distribution
 
     @Query("SELECT COUNT(b), COALESCE(SUM(b.price), 0) FROM Book b")
-    Object[] getCountAndTotalValue();
+    Object[] getCountAndTotalValue(); // Used in Library Statistics
 
     @Modifying(clearAutomatically = true) // Clears the persistence context to avoid stale data
     @Query("DELETE FROM Book b WHERE b.id = :id")

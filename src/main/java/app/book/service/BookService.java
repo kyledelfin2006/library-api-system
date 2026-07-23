@@ -203,10 +203,13 @@ public class BookService {
 
     // ---------------------- Individual statistics (used elsewhere) ----------------------
 
+
+    // Mainly used by Unit Testing
     public BigDecimal getTotalLibraryValue() {
         return repository.sumTotalOfPrice().orElse(BigDecimal.ZERO);
     }
 
+    // Mainly used by Unit Testing
     public Book findMostExpensiveBook() {
         return repository.findTopByOrderByPriceDesc();
     }

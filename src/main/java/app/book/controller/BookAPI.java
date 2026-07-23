@@ -86,7 +86,7 @@
         // Delete a book
         @DeleteMapping("/{id}")
         public ResponseEntity<ApiResponse<Void>> deleteBook(@PathVariable Long id) {
-            manager.deleteBookById(id); // Throws Exception incase
+            manager.deleteBookById(id); // Throws Exception in case
             return ResponseEntity.ok(new ApiResponse<>(true, "Book deleted successfully"));
         }
 

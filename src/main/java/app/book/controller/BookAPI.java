@@ -1,5 +1,6 @@
     package app.book.controller;
 
+    import app.book.dto.BookResponseDTO;
     import app.book.entity.Book;
     import app.book.dto.BookRequestDTO;
     import app.book.mapper.BookMapper;
@@ -69,17 +70,17 @@
 
         // Add a new book (validated)
         @PostMapping("/add")
-        public ResponseEntity<ApiResponse<Book>> addBook(@Valid @RequestBody BookRequestDTO input) {
+        public ResponseEntity<ApiResponse<BookResponseDTO>> addBook(@Valid @RequestBody BookRequestDTO input) {
             Book newBook = manager.addBook(input);
             return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(new ApiResponse<>(true, "Book Added Successfully", newBook));
+                    .body(new ApiResponse<>(true, "Book Added Successfully", mapper.toResponseDTO(newBook)));
         }
 
         // Get book by ID
         @GetMapping("/{id}")
-        public ResponseEntity<Book> getBookById(@PathVariable Long id) {
+        public ResponseEntity<BookResponseDTO> getBookById(@PathVariable Long id) {
             Book book = manager.findBookById(id);
-            return ResponseEntity.ok(book);
+            return ResponseEntity.ok(mapper.toResponseDTO(book));
         }
 
         // Delete a book

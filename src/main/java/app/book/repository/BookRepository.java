@@ -33,6 +33,9 @@ public interface BookRepository extends JpaRepository<Book, Long> {
    @Query("SELECT b.genre, COUNT(b) FROM Book b GROUP BY b.genre")
    List<Object[]> getGenres();
 
+    @Query("SELECT COUNT(b), COALESCE(SUM(b.price), 0) FROM Book b")
+    Object[] getCountAndTotalValue();
+
     @Modifying(clearAutomatically = true) // Clears the persistence context to avoid stale data
     @Query("DELETE FROM Book b WHERE b.id = :id")
     int deleteBookById(@Param("id") Long id);

@@ -91,10 +91,16 @@
         }
 
         @GetMapping("/all") // User sets page, if omit then default will be used
-        public ResponseEntity<Page<Book>> getAllBooks(
+        public ResponseEntity<Page<BookResponseDTO>> getAllBooks(
                @PageableDefault(size = 12, sort = "id") Pageable pageable) {
+
+            // 1. Get page as book entity
             Page<Book> page = manager.getBooks(pageable);
-            return ResponseEntity.ok(page);
+
+            // 2. Map from book entity to response dto
+            Page<BookResponseDTO> dtopage = page.map(mapper::toResponseDTO);
+
+            return ResponseEntity.ok(dtopage);
         }
 
         @GetMapping("/sorted")

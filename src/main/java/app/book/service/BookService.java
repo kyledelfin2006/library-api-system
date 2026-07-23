@@ -1,5 +1,6 @@
 package app.book.service;
 
+import app.book.dto.BookResponseDTO;
 import app.book.exceptions.BookNotFoundException;
 import app.book.entity.Book;
 import app.book.dto.BookRequestDTO;
@@ -27,7 +28,7 @@ public class BookService {
     }
 
     public Page<Book> getBooks(Pageable pageable){
-        return repository.findAll(pageable);
+       return repository.findAll(pageable);
     }
 
     @Transactional

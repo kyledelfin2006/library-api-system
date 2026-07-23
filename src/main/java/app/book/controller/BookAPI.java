@@ -2,6 +2,7 @@
 
     import app.book.entity.Book;
     import app.book.dto.BookRequestDTO;
+    import app.book.mapper.BookMapper;
     import app.global.responses.ApiResponse;
     import app.book.service.BookService;
     import jakarta.validation.Valid;
@@ -9,7 +10,6 @@
     import org.springframework.http.HttpStatus;
     import org.springframework.http.ResponseEntity;
     import org.springframework.web.bind.annotation.*;
-
     import java.math.BigDecimal;
     import java.util.List;
     import java.util.Map;
@@ -24,10 +24,12 @@
     public class BookAPI {
 
         private final BookService manager;
+        private final BookMapper mapper;
 
         @Autowired
-        public BookAPI(BookService manager) {
+        public BookAPI(BookService manager, BookMapper mapper) {
             this.manager = manager;
+            this.mapper = mapper;
         }
 
         // ==================== ROUTES ====================
@@ -66,7 +68,7 @@
         }
 
         // Add a new book (validated)
-        @PostMapping("/addBook")
+        @PostMapping("/add")
         public ResponseEntity<ApiResponse<Book>> addBook(@Valid @RequestBody BookRequestDTO input) {
             Book newBook = manager.addBook(input);
             return ResponseEntity.status(HttpStatus.CREATED)

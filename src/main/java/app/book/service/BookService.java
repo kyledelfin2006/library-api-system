@@ -3,6 +3,7 @@ package app.book.service;
 import app.book.exceptions.BookNotFoundException;
 import app.book.entity.Book;
 import app.book.dto.BookRequestDTO;
+import app.book.mapper.BookMapper;
 import app.book.repository.BookRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
@@ -17,10 +18,12 @@ import java.util.stream.Collectors;
 @Service
 public class BookService {
     private final BookRepository repository;
+    private final BookMapper mapper;
 
 
-    public BookService(BookRepository repository) {
+    public BookService(BookRepository repository, BookMapper mapper) {
         this.repository = repository;
+        this.mapper = mapper;
     }
 
     public Page<Book> getBooks(Pageable pageable){
@@ -78,36 +81,12 @@ public class BookService {
         // 1. Fetch the existing book (throws 404 if not found)
         Book existingBook = findBookById(id); // Loaded from DB
 
-        // 2. Validate that the DTO contains all required fields
-        //    (Even though @Valid in the controller ensures this, we keep a defensive check.)
-        if (updates == null) {
-            throw new IllegalArgumentException("Book data must not be null");
-        }
-        if (!hasText(updates.getTitle())) {
-            throw new IllegalArgumentException("Title cannot be empty");
-        }
-        if (!hasText(updates.getAuthor())) {
-            throw new IllegalArgumentException("Author cannot be empty");
-        }
-        if (!hasText(updates.getGenre())) {
-            throw new IllegalArgumentException("Genre cannot be empty");
-        }
+        // 2. Update entire entity using BookMapper
+        mapper.updateBookFromDto(updates, existingBook);
 
-        if (updates.getPrice() != null) {
-            if (updates.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
-                throw new IllegalArgumentException("Price must be greater than 0");
-            }
+        // 3. Persist and return managed book entity through dirty checking
+        return  existingBook;
         }
-
-        // 3. Apply all updates
-        existingBook.setTitle(updates.getTitle());
-        existingBook.setAuthor(updates.getAuthor());
-        existingBook.setGenre(updates.getGenre());
-        existingBook.setPrice(updates.getPrice());
-
-        // 4. Persist and return the managed entity
-        return existingBook;
-    }
 
     @Transactional
     public void deleteBookById(Long id) {

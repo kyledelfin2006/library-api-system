@@ -12,7 +12,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -99,6 +98,9 @@ public class BookService {
     }
 
     public List<Book> getBooksInPriceRange(BigDecimal min, BigDecimal max) {
+        if (min.compareTo(max) > 0) {
+            throw new IllegalArgumentException("minPrice must be less than or equal to maxPrice");
+        }
         return repository.findBooksByPriceBetween(min, max);
     }
 
@@ -203,10 +205,6 @@ public class BookService {
 
     public BigDecimal getTotalLibraryValue() {
         return repository.sumTotalOfPrice().orElse(BigDecimal.ZERO);
-    }
-
-    public Long countBooks() {
-        return repository.count();
     }
 
     public Book findMostExpensiveBook() {

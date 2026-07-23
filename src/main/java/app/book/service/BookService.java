@@ -64,7 +64,7 @@ public class BookService {
             existingBook.setPrice(updates.getPrice());
         }
 
-        return existingBook; // no repository.save() needed — see below
+        return existingBook; // no repository.save() needed for Transactional methods.
     }
 
     // Checks whether a string has text and is not null

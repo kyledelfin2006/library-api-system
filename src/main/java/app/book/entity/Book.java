@@ -17,7 +17,7 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.IDENTITY) // Matches Serial/BIGSERIAL in PostgreSQL
     private Long id;
 
-    // Use @NotBlank for Strings to prevent empty spaces
+    // Use @NotBlank for Strings to prevent empty spaces and null values.
     @NotBlank(message = "Title cannot be blank")
     @Column(nullable = false, length = 100)
     private String title;
@@ -30,7 +30,7 @@ public class Book {
     @Column(nullable = false, length = 50)
     private String genre;
 
-    // Added @NotNull because @Positive allows null values by default
+    // Added @NotNull because @Positive allows null values by default unlike @NotBlank
     @NotNull(message = "Price is required")
     @Positive(message = "Price must be greater than 0")
     @Column(nullable = false, precision = 10, scale = 2)
@@ -39,7 +39,6 @@ public class Book {
     // REQUIRED for JPA and Jackson deserialization
     public Book() {}
 
-    // Clean constructor without inline annotations
     public Book(String title, String author, String genre, BigDecimal price) {
         this.title = title;
         this.author = author;

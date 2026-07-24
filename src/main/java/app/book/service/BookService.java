@@ -201,6 +201,11 @@ public class BookService {
         return new LibraryStatisticsDTO(totalBooks, totalValue, mostExpensiveDTO);
     }
 
+    public BigDecimal getAveragePrice(){
+       Optional<BigDecimal> averagePrice = repository.getAveragePrice();
+
+    }
+
     // ---------------------- Individual statistics (used elsewhere) ----------------------
 
 

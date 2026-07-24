@@ -41,7 +41,7 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     int deleteBookById(@Param("id") Long id);
 
     @Query("SELECT AVG(b.price) FROM Book b")
-    BigDecimal getAveragePrice();
+    Optional<BigDecimal> getAveragePrice();
 
 
 

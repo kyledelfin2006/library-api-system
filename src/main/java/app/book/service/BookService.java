@@ -46,8 +46,11 @@ public class BookService {
     // Partial updates
     @Transactional
     public Book patchBook(Long id, BookRequestDTO updates) {
+
+        // 1. Find Book ID
         Book existingBook = findBookById(id);
 
+        // 2. Only set new value if update is available
         if (hasText(updates.getTitle())) {
             existingBook.setTitle(updates.getTitle().trim());
         }

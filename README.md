@@ -44,6 +44,12 @@ flowchart TD
     A -. validation / errors .-> E["GlobalExceptionHandler<br/>@RestControllerAdvice"]
     S -. validation / errors .-> E
     E --> F["ApiResponse / ErrorResponse"]
+
+    classDef default fill:#1e293b,stroke:#0f172a,color:#ffffff
+    classDef db fill:#1e3a8a,stroke:#0f172a,color:#ffffff
+
+    class C,A,S,R,E,F default
+    class D db
 ```
 
 ## File Structure

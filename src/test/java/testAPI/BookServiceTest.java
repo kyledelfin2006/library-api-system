@@ -466,6 +466,13 @@ class BookServiceTest {
     }
 
     @Test
+    void getAveragePrice_whenBooksExist_shouldReturnAverage() {
+        when(repository.getAveragePrice()).thenReturn(Optional.of(new BigDecimal("25.50")));
+        BigDecimal avg = bookService.getAveragePrice();
+        assertEquals(0, new BigDecimal("25.50").compareTo(avg));
+    }
+
+    @Test
     void findMostExpensiveBook_whenNoBooks_shouldReturnNull() {
         when(repository.findTopByOrderByPriceDesc()).thenReturn(null);
 

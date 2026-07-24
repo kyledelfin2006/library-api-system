@@ -129,6 +129,15 @@
             return ResponseEntity.ok(dtoList);
         }
 
+        @GetMapping("/stats/average-price")
+        public ResponseEntity<ApiResponse<BigDecimal>> getAveragePrice() {
+            BigDecimal avg = service.getAveragePrice();
+            return ResponseEntity.ok(
+                    new ApiResponse<>(true,"Average Price of Collection: ",avg)
+            );
+        }
+
+
         // Patch (partial update)
         @PatchMapping("/{id}")
         public ResponseEntity<ApiResponse<BookResponseDTO>> patchBook(

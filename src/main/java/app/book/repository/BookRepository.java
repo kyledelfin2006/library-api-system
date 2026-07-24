@@ -40,6 +40,9 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     @Query("DELETE FROM Book b WHERE b.id = :id")
     int deleteBookById(@Param("id") Long id);
 
+    @Query("SELECT AVG(b.price) FROM Book b")
+    BigDecimal getAveragePrice();
+
 
 
 

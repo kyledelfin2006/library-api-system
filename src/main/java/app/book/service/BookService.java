@@ -203,7 +203,7 @@ public class BookService {
 
     public BigDecimal getAveragePrice(){
        Optional<BigDecimal> averagePrice = repository.getAveragePrice();
-
+       return averagePrice.orElse(BigDecimal.ZERO);
     }
 
     // ---------------------- Individual statistics (used elsewhere) ----------------------

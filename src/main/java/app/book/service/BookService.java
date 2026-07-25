@@ -115,6 +115,14 @@ public class BookService {
         return repository.findByPriceLessThanEqual(maxPrice);
     }
 
+    /**
+     * Retrieves all books whose price falls within the given range (inclusive).
+     *
+     * @param min the minimum price (must be ≤ max)
+     * @param max the maximum price (must be ≥ min)
+     * @return a list of books in the price range
+     * @throws IllegalArgumentException if min > max
+     */
     public List<Book> getBooksInPriceRange(BigDecimal min, BigDecimal max) {
         if (min.compareTo(max) > 0) {
             throw new IllegalArgumentException("minPrice must be less than or equal to maxPrice");

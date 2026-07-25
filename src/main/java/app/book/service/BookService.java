@@ -105,6 +105,12 @@ public class BookService {
         }
     }
 
+    /**
+     * Retrieves all books whose price is less than or equal to the specified maximum.
+     *
+     * @param maxPrice the maximum price (inclusive)
+     * @return a list of books within the budget
+     */
     public List<Book> getBooksWithinBudget(BigDecimal maxPrice) {
         return repository.findByPriceLessThanEqual(maxPrice);
     }

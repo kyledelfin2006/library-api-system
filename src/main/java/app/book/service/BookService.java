@@ -190,11 +190,24 @@ public class BookService {
                 ));
     }
 
+
+    /**
+     * Retrieves all books sorted by the specified field in ascending order.
+     * <p>
+     * Allowed sort fields are: {@code title}, {@code author}, {@code id}, {@code price}, {@code genre}.
+     * If the provided field is {@code null} or empty, the list is returned unsorted.
+     * </p>
+     *
+     * @param field the name of the field to sort by (case-insensitive, trimmed)
+     * @return a list of books sorted accordingly
+     * @throws IllegalArgumentException if the field is not one of the allowed values
+     */
     public List<Book> getBooksSortedBy(String field) {
         if (field == null || field.trim().isEmpty()) {
             return repository.findAll();
         }
 
+        // Clean the field name
         String fieldName = field.trim().toLowerCase();
 
         // Validate allowed fields to avoid SQL injection through Sort.by()

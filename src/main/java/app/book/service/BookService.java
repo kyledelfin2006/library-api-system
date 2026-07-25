@@ -88,6 +88,15 @@ public class BookService {
         return existingBook;
     }
 
+    /**
+     * Deletes a book by its ID.
+     * <p>
+     * Uses a custom JPQL delete query to avoid loading the entity first.
+     * </p>
+     *
+     * @param id the ID of the book to delete
+     * @throws BookNotFoundException if no book exists with the given ID
+     */
     @Transactional
     public void deleteBookById(Long id) {
         int deletedCount = repository.deleteBookById(id); // Returns the amount of rows deleted

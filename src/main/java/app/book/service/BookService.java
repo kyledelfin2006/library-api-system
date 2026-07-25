@@ -130,6 +130,19 @@ public class BookService {
         return repository.findBooksByPriceBetween(min, max);
     }
 
+    /**
+     * Searches for books by a specific field type and value.
+     * <p>
+     * Supported search types: {@code author}, {@code title}, {@code genre}, {@code price}.
+     * For price, the value must be a valid numeric string.
+     * </p>
+     *
+     * @param type  the field to search on (case-insensitive, trimmed)
+     * @param value the search term (case-insensitive for text fields)
+     * @return a list of matching books
+     * @throws IllegalArgumentException if the search type is unsupported or
+     *                                  the price value is not a valid number
+     */
     public List<Book> searchBooks(String type, String value) {
         String formattedType = type.trim().toLowerCase();
 

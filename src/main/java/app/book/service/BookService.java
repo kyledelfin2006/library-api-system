@@ -16,20 +16,57 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Service layer for managing {@link Book} entities.
+ * <p>
+ * This class orchestrates business logic for book operations, including
+ * retrieval, creation, update, deletion, and search. It acts as a facade
+ * between the controller layer and the repository, translating DTOs to entities
+ * and vice versa using {@link BookMapper}.
+ * </p>
+ *
+ * <p>All write operations are annotated with {@code @Transactional} to ensure
+ * data consistency and enable automatic dirty checking.</p>
+ *
+ * @author Your Name
+ * @version 1.0
+ * @see BookRepository
+ * @see BookMapper
+ */
 @Service
 public class BookService {
     private final BookRepository repository;
     private final BookMapper mapper;
 
+    /**
+     * Constructs a new {@code BookService} with the required dependencies.
+     *
+     * @param repository the data access object for book entities
+     * @param mapper     the component for converting between DTOs and entities
+     */
     public BookService(BookRepository repository, BookMapper mapper) {
         this.repository = repository;
         this.mapper = mapper;
     }
 
+    /**
+     * Retrieves a paginated list of all books.
+     *
+     * @param pageable the pagination and sorting information
+     * @return a page of books matching the given pageable parameters
+     */
     public Page<Book> getBooks(Pageable pageable) {
         return repository.findAll(pageable);
     }
 
+    /**
+     * Creates a new book from the provided DTO and saves it to the database.
+     *
+     * @param input the request DTO containing book data (must be valid)
+     * @return the persisted {@link Book} entity (with generated ID)
+     * @throws IllegalArgumentException if the DTO contains invalid data
+     *                                  (validated at controller level)
+     */
     @Transactional
     public Book addBook(BookRequestDTO input) {
         // Use the mapper to convert DTO → Entity (keeps construction centralized)
@@ -38,11 +75,31 @@ public class BookService {
         return newBook;
     }
 
+    /**
+     * Retrieves a book by its unique identifier.
+     *
+     * @param id the book's ID
+     * @return the found {@link Book} entity
+     * @throws BookNotFoundException if no book exists with the given ID
+     */
     public Book findBookById(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new BookNotFoundException("Couldn't find book of ID: " + id));
     }
 
+    /**
+     * Performs a partial update on an existing book.
+     * <p>
+     * Only fields that are non-{@code null} and have text (for strings) are updated.
+     * Price updates must be positive; otherwise, an exception is thrown.
+     * </p>
+     *
+     * @param id      the ID of the book to update
+     * @param updates the DTO containing the fields to update (others remain unchanged)
+     * @return the updated {@link Book} entity (managed, persisted by dirty checking)
+     * @throws BookNotFoundException      if the book does not exist
+     * @throws IllegalArgumentException   if the provided price is ≤ 0
+     */
     // Partial updates
     @Transactional
     public Book patchBook(Long id, BookRequestDTO updates) {
@@ -75,7 +132,19 @@ public class BookService {
         return s != null && !s.trim().isEmpty();
     }
 
-    // Replaces entire book
+    /**
+     * Completely replaces an existing book with new data.
+     * <p>
+     * All fields of the book are overwritten with the values from the DTO.
+     * </p>
+     *
+     * @param id      the ID of the book to replace
+     * @param updates the DTO containing the complete new data (must be valid)
+     * @return the updated {@link Book} entity (managed)
+     * @throws BookNotFoundException    if the book does not exist
+     * @throws IllegalArgumentException if the DTO is {@code null} or contains invalid data
+     *                                  (e.g., blank title, negative price)
+     */
     @Transactional
     public Book replaceBook(Long id, BookRequestDTO updates) {
         // 1. Fetch the existing book (throws 404 if not found)
@@ -253,19 +322,40 @@ public class BookService {
         return new LibraryStatisticsDTO(totalBooks, totalValue, mostExpensiveDTO);
     }
 
+    /**
+     * Calculates the average price of all books in the library.
+     *
+     * @return the average price as a {@link BigDecimal}, or {@link BigDecimal#ZERO}
+     *         if no books exist
+     */
     public BigDecimal getAveragePrice(){
-       Optional<BigDecimal> averagePrice = repository.getAveragePrice();
-       return averagePrice.orElse(BigDecimal.ZERO);
+        Optional<BigDecimal> averagePrice = repository.getAveragePrice();
+        return averagePrice.orElse(BigDecimal.ZERO);
     }
 
     // ---------------------- Individual statistics (used elsewhere) ----------------------
 
-
+    /**
+     * Computes the total monetary value of all books in the library.
+     * <p>
+     * This method is primarily used for unit testing.
+     * </p>
+     *
+     * @return the sum of all book prices, or {@link BigDecimal#ZERO} if the library is empty
+     */
     // Mainly used by Unit Testing
     public BigDecimal getTotalLibraryValue() {
         return repository.sumTotalOfPrice().orElse(BigDecimal.ZERO);
     }
 
+    /**
+     * Finds the most expensive book in the library.
+     * <p>
+     * This method is primarily used for unit testing.
+     * </p>
+     *
+     * @return the book with the highest price, or {@code null} if the library is empty
+     */
     // Mainly used by Unit Testing
     public Book findMostExpensiveBook() {
         return repository.findTopByOrderByPriceDesc();

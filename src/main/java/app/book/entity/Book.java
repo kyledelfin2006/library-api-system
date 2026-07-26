@@ -13,6 +13,12 @@ import java.math.BigDecimal;
 @JsonPropertyOrder({"id", "title", "author", "genre", "price"})
 public class Book {
 
+
+    /**
+     * The unique identifier of the book.
+     * Generated automatically using the database identity column
+     * (SERIAL / BIGSERIAL in PostgreSQL).
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // Matches Serial/BIGSERIAL in PostgreSQL
     private Long id;

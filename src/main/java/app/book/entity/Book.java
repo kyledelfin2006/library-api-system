@@ -51,7 +51,22 @@ public class Book {
     @Column(nullable = false, length = 50)
     private String genre;
 
-    // Added @NotNull because @Positive allows null values by default unlike @NotBlank
+    /**
+     * The price of the book.
+     * <p>
+     * The {@link Positive} validation constraint ensures that the price must be
+     * strictly greater than zero. However, by default {@code @Positive} allows
+     * {@code null} values (unlike {@code @NotBlank}, which only applies to strings).
+     * Since the price is a required field, the {@link NotNull} constraint is
+     * added explicitly to enforce that the price is always provided and cannot
+     * be {@code null}.
+     * </p>
+     * <p>
+     * At the database level, the column is defined as {@code NOT NULL} with
+     * a precision of 10 digits and a scale of 2 decimal places, suitable for
+     * storing monetary values.
+     * </p>
+     */
     @NotNull(message = "Price is required")
     @Positive(message = "Price must be greater than 0")
     @Column(nullable = false, precision = 10, scale = 2)

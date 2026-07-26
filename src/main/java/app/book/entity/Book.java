@@ -5,9 +5,17 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-
 import java.math.BigDecimal;
 
+
+/**
+ * Represents a book entity in the bookstore application.
+ * This class is mapped to the "books" table in the database and includes
+ * validation constraints for each field.
+ * <p>
+ * The JSON serialization order is defined by {@link JsonPropertyOrder}.
+ * </p>
+ */
 @Entity
 @Table(name = "books")
 @JsonPropertyOrder({"id", "title", "author", "genre", "price"})

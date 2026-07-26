@@ -7,7 +7,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import java.math.BigDecimal;
 
-
 /**
  * Represents a book entity in the bookstore application.
  * This class is mapped to the "books" table in the database and includes

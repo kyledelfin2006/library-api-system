@@ -31,7 +31,14 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.IDENTITY) // Matches Serial/BIGSERIAL in PostgreSQL
     private Long id;
 
-    // Use @NotBlank for Strings to prevent empty spaces and null values.
+    /**
+     * <p>
+     * The {@link NotBlank} validation annotation is used to ensure that the title, author, genre
+     * is not {@code null}, not empty, and does not consist solely of whitespace.
+     * This prevents empty or meaningless strings from being persisted.
+     * </p>
+     * The maximum length is 100 characters, enforced by the database column definition.
+     */
     @NotBlank(message = "Title cannot be blank")
     @Column(nullable = false, length = 100)
     private String title;

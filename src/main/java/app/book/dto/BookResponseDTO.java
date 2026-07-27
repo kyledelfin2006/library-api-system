@@ -2,7 +2,6 @@ package app.book.dto;
 
 import java.math.BigDecimal;
 
-
 public class BookResponseDTO {
     private Long id;
     private String title;

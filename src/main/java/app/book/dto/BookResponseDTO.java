@@ -9,7 +9,9 @@ public class BookResponseDTO {
     private String genre;
     private BigDecimal price;
 
+    // Required for JPA
     public BookResponseDTO(){}
+
     public BookResponseDTO(Long id, String title, String author, String genre, BigDecimal price) {
         this.id = id;
         this.title = title;

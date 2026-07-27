@@ -2,6 +2,7 @@ package app.book.dto;
 
 import java.math.BigDecimal;
 
+
 public class BookResponseDTO {
     private Long id;
     private String title;
@@ -12,6 +13,7 @@ public class BookResponseDTO {
     // Required for JPA
     public BookResponseDTO(){}
 
+    // No Authentication needed as it is processed by Request & Entity
     public BookResponseDTO(Long id, String title, String author, String genre, BigDecimal price) {
         this.id = id;
         this.title = title;

@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class BookRequestDTO {
 
+    // @NotBlank ensures the client doesn't pass a null value, or empty strings
     @NotBlank(message = "Title cannot be empty")
     @Size(max = 100, message = "Title cannot exceed 100 characters")
     private String title;

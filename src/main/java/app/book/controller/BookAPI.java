@@ -34,8 +34,6 @@
             this.mapper = mapper;
         }
 
-        // ==================== ROUTES ====================
-
         @GetMapping("/health")
         public ResponseEntity<ApiResponse<String>> healthCheck() {
             return ResponseEntity.ok(new ApiResponse<>(true, "API is running"));

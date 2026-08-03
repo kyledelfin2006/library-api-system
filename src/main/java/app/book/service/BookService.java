@@ -360,4 +360,8 @@ public class BookService {
     public Book findMostExpensiveBook() {
         return repository.findTopByOrderByPriceDesc();
     }
+
+    public Long getBookCount(){
+        return repository.count();
+    }
 }

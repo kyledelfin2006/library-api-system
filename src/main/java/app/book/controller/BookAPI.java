@@ -138,6 +138,11 @@
             );
         }
 
+        @GetMapping("/stats/count")
+        public  ResponseEntity<ApiResponse<Long>> getBooksCount() {
+            long bookCount =
+        }
+
 
         // Patch (partial update)
         @PatchMapping("/{id}")

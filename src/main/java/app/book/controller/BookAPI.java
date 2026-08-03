@@ -140,7 +140,9 @@
 
         @GetMapping("/stats/count")
         public  ResponseEntity<ApiResponse<Long>> getBooksCount() {
-            long bookCount =
+          return ResponseEntity.ok(
+                  new ApiResponse<>(true,"Book Collection Count", service.getBookCount())
+                  );
         }
 
 

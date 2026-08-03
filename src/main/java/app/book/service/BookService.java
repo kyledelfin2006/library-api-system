@@ -361,6 +361,12 @@ public class BookService {
         return repository.findTopByOrderByPriceDesc();
     }
 
+    /**
+     * Sends the count of books in the collection.
+     *
+     *
+     * @return the amount of books in collection, or {@code null} if the library is empty
+     */
     public Long getBookCount(){
         return repository.count();
     }

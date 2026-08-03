@@ -37,9 +37,12 @@
         // API ENDPOINTS
 
         @GetMapping("/health")
-        public ResponseEntity<ApiResponse<String>> healthCheck() {
-            return ResponseEntity.ok(new ApiResponse<>(true, "API is running"));
+        public ResponseEntity<ApiResponse<Map<String, Boolean>>> healthCheck() {
+            boolean dbUp = service.getBookCount() >= 0; // throws exception if connection fails
+            Map<String, Boolean> status = Map.of("api", true, "database", dbUp);
+            return ResponseEntity.ok(new ApiResponse<>(true, "Health check", status));
         }
+
 
         @GetMapping("/stats")
         public ResponseEntity<LibraryStatisticsDTO> getStats() {

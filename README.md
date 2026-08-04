@@ -20,6 +20,7 @@ Library API System is a Spring Boot REST API for managing books with CRUD operat
 * [Setup & Installation](https://github.com/kyledelfin2006/library-api-system#setup--installation)
 * [Troubleshooting](https://github.com/kyledelfin2006/library-api-system#troubleshooting)
 * [Data Management](https://github.com/kyledelfin2006/library-api-system#data-management)
+* Problems I Solved
 * [Upcoming Improvements](https://github.com/kyledelfin2006/library-api-system#upcoming-improvements)
 * [License](https://github.com/kyledelfin2006/library-api-system#license)
 

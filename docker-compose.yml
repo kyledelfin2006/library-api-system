@@ -3,7 +3,7 @@ services:
   db:
     image: postgres:15
     container_name: library-postgres
-    environment:
+    environment: # FROM env file
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}

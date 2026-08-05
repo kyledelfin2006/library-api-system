@@ -1,6 +1,6 @@
 
 services:
-  db:
+  db: # metadata for postgres db
     image: postgres:15
     container_name: library-postgres
     environment: # from env file
@@ -14,7 +14,7 @@ services:
       - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/schema.sql   # init script for db
     restart: unless-stopped
 
-  app:
+  app: # metadata for library app
     build: .
     container_name: library-app
     depends_on:

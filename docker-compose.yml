@@ -1,20 +1,19 @@
-
 services:
-  db: # metadata for postgres db
+  db: # PostgreSQL database service
     image: postgres:15
     container_name: library-postgres
-    environment: # from env file
+    environment: # Values injected from the .env file
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432" # port for docker container to run
+      - "5432:5432" # Maps host port 5432 to container port 5432
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/schema.sql   # init script for db
+      - postgres_data:/var/lib/postgresql/data # Persistent data volume
+      - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/schema.sql # Runs DB schema init on first startup
     restart: unless-stopped
 
-  app: # metadata for library app
+  app: # Spring Boot application service
     build: .
     container_name: library-app
     depends_on:
@@ -24,8 +23,5 @@ services:
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "8080:8080"
+      - "8080:8080" # Maps host port 8080 to container port 8080
     restart: unless-stopped
-
-volumes:
-  postgres_data:

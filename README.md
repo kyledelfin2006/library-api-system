@@ -20,7 +20,7 @@ Library API System is a Spring Boot REST API for managing books with CRUD operat
 * [Setup & Installation](https://github.com/kyledelfin2006/library-api-system#setup--installation)
 * [Troubleshooting](https://github.com/kyledelfin2006/library-api-system#troubleshooting)
 * [Data Management](https://github.com/kyledelfin2006/library-api-system#data-management)
-* Problems Solved
+* [Problems Solved](https://github.com/kyledelfin2006/library-api-system#problems-solved)
 * [Upcoming Improvements](https://github.com/kyledelfin2006/library-api-system#upcoming-improvements)
 * [License](https://github.com/kyledelfin2006/library-api-system#license)
 
@@ -33,6 +33,7 @@ The application follows a clean layered architecture:
 - `app.book.repository.BookRepository` extends `JpaRepository` and handles persistence.
 - `app.book.entity.Book` is the JPA entity mapped to the `books` table.
 - `app.book.dto` contains request and response DTOs.
+- `app.book.mapper.BookMapper` converts between entities and DTOs.
 - `app.global.exceptions.GlobalExceptionHandler` centralizes API error handling.
 - `app.auth.SecurityConfig` permits all requests and disables CSRF.
 
@@ -72,6 +73,9 @@ src/main/java/app/
     dto/
       BookRequestDTO.java
       BookResponseDTO.java
+      LibraryStatisticsDTO.java
+    mapper/
+      BookMapper.java
     exceptions/
       BookNotFoundException.java
   global/
@@ -97,6 +101,7 @@ src/test/java/
 - Transactional service methods rely on Hibernate dirty checking, so updates are flushed automatically when the managed entity changes.
 - Centralized exception handling ensures consistent JSON failures across validation, not-found, database, and parsing errors.
 - Repository abstraction through Spring Data JPA keeps persistence code small and testable.
+- Mapper pattern centralizes entity-DTO conversion to avoid duplication.
 
 ## Key Features
 
@@ -104,7 +109,8 @@ src/test/java/
 - Pagination and sorting through `GET /app/books/all` and `GET /app/books/sorted`.
 - Advanced search by title, author, genre, or price.
 - Price range filtering through `GET /app/books/price`.
-- Statistics endpoint for total books, total library value, and the most expensive book.
+- Budget filtering through `GET /app/books/budget`.
+- Statistics endpoints for total books, total library value, average price, and the most expensive book.
 - Genre distribution endpoint.
 - Validation with `@Valid` on create and replace requests.
 - Global handling for `BookNotFoundException`, validation errors, malformed JSON, number format errors, database issues, and unsupported methods.
@@ -141,11 +147,11 @@ src/test/java/
 ### DTO validation on create
 
 ```java
-@PostMapping("/addBook")
-public ResponseEntity<ApiResponse<Book>> addBook(@Valid @RequestBody BookRequestDTO input) {
-    Book newBook = manager.addBook(input);
+@PostMapping("/add")
+public ResponseEntity<ApiResponse<BookResponseDTO>> addBook(@Valid @RequestBody BookRequestDTO input) {
+    Book newBook = service.addBook(input);
     return ResponseEntity.status(HttpStatus.CREATED)
-            .body(new ApiResponse<>(true, "Book Added Successfully", newBook));
+            .body(new ApiResponse<>(true, "Book Added Successfully", mapper.toResponseDTO(newBook)));
 }
 ```
 
@@ -178,14 +184,27 @@ public ResponseEntity<ErrorResponse> handleBookNotFound(BookNotFoundException ex
 }
 ```
 
+### Statistics aggregation
+
+```java
+public LibraryStatisticsDTO getLibraryStatistics() {
+    Object[] stats = repository.getCountAndTotalValue();
+    Long totalBooks = (Long) stats[0];
+    BigDecimal totalValue = (BigDecimal) stats[1];
+    Book mostExpensive = repository.findTopByOrderByPriceDesc();
+    BookResponseDTO mostExpensiveDTO = (mostExpensive != null) ? mapper.toResponseDTO(mostExpensive) : null;
+    return new LibraryStatisticsDTO(totalBooks, totalValue, mostExpensiveDTO);
+}
+```
+
 ## API Endpoints
 
 | Method | Path | Description | Example Request | Example Response |
 | --- | --- | --- | --- | --- |
-| `GET` | `/app/books/health` | Health check for the API | `GET /app/books/health` | `{"success":true,"message":"API is running","timestamp":172...}` |
+| `GET` | `/app/books/health` | Health check for the API | `GET /app/books/health` | `{"success":true,"message":"Health check","data":{"api":true,"database":true},"timestamp":172...}` |
 | `GET` | `/app/books/all` | Returns a paginated list of books | `GET /app/books/all?page=0&size=12&sort=id,asc` | `{"content":[{"id":1,"title":"1984","author":"George Orwell","genre":"Dystopian","price":19.99}],"pageable":{...}}` |
 | `GET` | `/app/books/{id}` | Fetches a single book by ID | `GET /app/books/1` | `{"id":1,"title":"1984","author":"George Orwell","genre":"Dystopian","price":19.99}` |
-| `POST` | `/app/books/addBook` | Creates a new book using `BookRequestDTO` validation | `POST /app/books/addBook` with `{"title":"1984","author":"George Orwell","genre":"Dystopian","price":19.99}` | `{"success":true,"message":"Book Added Successfully","data":{"id":1,"title":"1984","author":"George Orwell","genre":"Dystopian","price":19.99},"timestamp":172...}` |
+| `POST` | `/app/books/add` | Creates a new book using `BookRequestDTO` validation | `POST /app/books/add` with `{"title":"1984","author":"George Orwell","genre":"Dystopian","price":19.99}` | `{"success":true,"message":"Book Added Successfully","data":{"id":1,"title":"1984","author":"George Orwell","genre":"Dystopian","price":19.99},"timestamp":172...}` |
 | `PATCH` | `/app/books/{id}` | Partially updates a book | `PATCH /app/books/1` with `{"price":15.99}` | `{"success":true,"message":"Book updated successfully","data":{"id":1,"title":"1984","author":"George Orwell","genre":"Dystopian","price":15.99},"timestamp":172...}` |
 | `PUT` | `/app/books/{id}` | Replaces a book completely | `PUT /app/books/1` with full DTO payload | `{"success":true,"message":"Book updated successfully","data":{"id":1,"title":"Animal Farm","author":"George Orwell","genre":"Political Satire","price":12.99},"timestamp":172...}` |
 | `DELETE` | `/app/books/{id}` | Deletes a book by ID | `DELETE /app/books/1` | `{"success":true,"message":"Book deleted successfully","timestamp":172...}` |
@@ -195,6 +214,8 @@ public ResponseEntity<ErrorResponse> handleBookNotFound(BookNotFoundException ex
 | `GET` | `/app/books/genre` | Returns genre distribution counts | `GET /app/books/genre` | `{"Fiction":3,"Fantasy":2,"Dystopian":1}` |
 | `GET` | `/app/books/price?minPrice=10&maxPrice=25` | Returns books within a price range | `GET /app/books/price?minPrice=10&maxPrice=25` | `[{"id":1,"title":"1984","author":"George Orwell","genre":"Dystopian","price":19.99}]` |
 | `GET` | `/app/books/stats` | Returns total books, total value, and the most expensive book | `GET /app/books/stats` | `{"totalBooks":6,"totalValue":123.45,"mostExpensiveBook":{"id":4,"title":"...","author":"...","genre":"...","price":49.99}}` |
+| `GET` | `/app/books/stats/average-price` | Returns the average price of all books | `GET /app/books/stats/average-price` | `{"success":true,"message":"Average Price of Collection: ","data":20.50,"timestamp":172...}` |
+| `GET` | `/app/books/stats/count` | Returns the total number of books | `GET /app/books/stats/count` | `{"success":true,"message":"Book Collection Count","data":6,"timestamp":172...}` |
 
 ## Setup & Installation
 
@@ -203,23 +224,23 @@ public ResponseEntity<ErrorResponse> handleBookNotFound(BookNotFoundException ex
 Docker is the preferred way to run the project because it brings up both PostgreSQL 15 and the Spring Boot application together.
 
 1. Create your environment file from the example:
-   ```bash
-   copy .env.example .env
-   ```
-   Use values like:
-   ```env
-   POSTGRES_DB=librarydb
-   POSTGRES_USER=admin
-   POSTGRES_PASSWORD=change_me
-   ```
+    ```bash
+    copy envFileExample .env
+    ```
+    Use values like:
+    ```env
+    POSTGRES_DB=librarydb
+    POSTGRES_USER=admin
+    POSTGRES_PASSWORD=change_me
+    ```
 2. Build the application jar:
-   ```bash
-   mvn clean package
-   ```
+    ```bash
+    mvn clean package
+    ```
 3. Start the full stack:
-   ```bash
-   docker compose up --build
-   ```
+    ```bash
+    docker compose up --build
+    ```
 4. Open the API at `http://localhost:8080`.
 
 ### Local development
@@ -227,19 +248,19 @@ Docker is the preferred way to run the project because it brings up both Postgre
 If you prefer to run the application directly on the host machine, start only PostgreSQL with Docker and then run Spring Boot locally.
 
 1. Start the database:
-   ```bash
-   docker compose up db
-   ```
+    ```bash
+    docker compose up db
+    ```
 2. Set the datasource environment variables:
-   ```bash
-   $env:SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5432/librarydb"
-   $env:SPRING_DATASOURCE_USERNAME="admin"
-   $env:SPRING_DATASOURCE_PASSWORD="change_me"
-   ```
+    ```bash
+    $env:SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5432/librarydb"
+    $env:SPRING_DATASOURCE_USERNAME="admin"
+    $env:SPRING_DATASOURCE_PASSWORD="change_me"
+    ```
 3. Run the app:
-   ```bash
-   mvn spring-boot:run
-   ```
+    ```bash
+    mvn spring-boot:run
+    ```
 
 ## Troubleshooting
 
@@ -255,7 +276,7 @@ If you prefer to run the application directly on the host machine, start only Po
 
 ## Quick Start
 
-1. Copy `.env.example` to `.env` and fill in PostgreSQL credentials.
+1. Copy `envFileExample` to `.env` and fill in PostgreSQL credentials.
 2. Run `mvn clean package`.
 3. Run `docker compose up --build`.
 4. Open `http://localhost:8080/app/books/health`.
@@ -266,13 +287,21 @@ If you prefer to run the application directly on the host machine, start only Po
 - `src/main/resources/schema.sql` creates the `books` table and indexes.
 - The app uses JPA and Hibernate for entity persistence.
 - Updates rely on Hibernate dirty checking inside transactional service methods.
-- `BookRequestDTO` is used for request validation, while `BookResponseDTO` is available for response shaping.
+- `BookRequestDTO` is used for request validation, while `BookResponseDTO` and `LibraryStatisticsDTO` are used for response shaping.
+- `BookMapper` centralizes conversion between entities and DTOs.
+
+
+## Problems Solved
+
+- **Tight Coupling**: Solved by using constructor-based dependency injection, interface-driven design (`BookService`, `BookRepository`), and the `BookMapper` component. The controller depends on abstractions rather than concrete implementations, making the codebase testable and easy to extend.
+- **Memory Leaking**: Solved by using `@Modifying(clearAutomatically = true)` on the delete query to flush and clear the persistence context, preventing stale entity accumulation. Pagination on `/app/books/all` also prevents loading the entire table into memory.
+- **Read And Write Concurrency Error**: Solved by isolating write operations inside `@Transactional` boundaries. Dirty checking and automatic flushing ensure that concurrent reads do not interfere with in-progress writes, and transactions are rolled back on failure to preserve data integrity.
+- **Using `@Transactional`**: All mutation endpoints (`addBook`, `patchBook`, `replaceBook`, `deleteBookById`) are wrapped in `@Transactional` to guarantee atomicity, enable Hibernate dirty checking for automatic updates, and provide consistent exception handling across the service layer.
 
 ## Upcoming Improvements
 
 - Add OpenAPI/Swagger documentation for interactive API discovery.
 - Add controller-level integration tests alongside the existing unit tests.
-- Introduce pagination options for more endpoints if the catalog grows.
 - Expand search capabilities with more flexible filtering and sorting combinations.
 - Add authentication and authorization if the API is exposed beyond local development.
 

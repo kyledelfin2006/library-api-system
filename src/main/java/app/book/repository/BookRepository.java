@@ -77,7 +77,12 @@ public interface BookRepository extends JpaRepository<Book, Long> {
      */
     Book findTopByOrderByPriceDesc();
 
-
+    /**
+     * Calculates the sum of all book prices in the library.
+     *
+     * @return an {@code Optional} containing the total sum, or {@code Optional.empty()}
+     *         if no books exist
+     */
    @Query("SELECT SUM(b.price) FROM Book b")
    Optional<BigDecimal> sumTotalOfPrice();
 

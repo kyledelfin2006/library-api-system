@@ -56,6 +56,13 @@ public interface BookRepository extends JpaRepository<Book, Long> {
      */
     List<Book> findByPrice(BigDecimal price);
 
+    /**
+     * Finds all books whose price falls within the given inclusive range.
+     *
+     * @param minPrice the minimum price (inclusive)
+     * @param maxPrice the maximum price (inclusive)
+     * @return a list of books with a price between {@code minPrice} and {@code maxPrice}
+     */
     @Query("SELECT b FROM Book b WHERE b.price BETWEEN :minPrice AND :maxPrice")
     List<Book> findBooksByPriceBetween(@Param("minPrice") BigDecimal minPrice,
                                        @Param("maxPrice") BigDecimal maxPrice);

@@ -131,6 +131,12 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     @Query("DELETE FROM Book b WHERE b.id = :id")
     int deleteBookById(@Param("id") Long id);
 
+    /**
+     * Calculates the average price of all books in the library.
+     *
+     * @return an {@code Optional} containing the average price, or
+     *         {@code Optional.empty()} if no books exist
+     */
     @Query("SELECT AVG(b.price) FROM Book b")
     Optional<BigDecimal> getAveragePrice();
 

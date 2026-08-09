@@ -40,8 +40,15 @@ public interface BookRepository extends JpaRepository<Book, Long> {
      */
     List<Book> findByGenreContainingIgnoreCase(String genre);
 
-
+    /**
+     * Finds all books whose price is less than or equal of the given BigDecimal (case-insensitive).
+     *
+     * @param price the decimal to compare for in the query (non-null)
+     * @return a list of books with a price less than or equal to {@code price} (ignoring case),
+     *         or an empty list if none found
+     */
     List<Book> findByPriceLessThanEqual(BigDecimal price);
+
     List<Book> findByPrice(BigDecimal price);
 
     @Query("SELECT b FROM Book b WHERE b.price BETWEEN :minPrice AND :maxPrice")

@@ -47,6 +47,13 @@ public interface BookRepository extends JpaRepository<Book, Long> {
      * @return a list of books whose price is ≤ {@code price}
      */
     List<Book> findByPriceLessThanEqual(BigDecimal price);
+
+    /**
+     * Finds all books with the exact given price.
+     *
+     * @param price the exact price to match
+     * @return a list of books whose price equals {@code price}
+     */
     List<Book> findByPrice(BigDecimal price);
 
     @Query("SELECT b FROM Book b WHERE b.price BETWEEN :minPrice AND :maxPrice")

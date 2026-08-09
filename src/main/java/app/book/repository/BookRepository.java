@@ -100,10 +100,34 @@ public interface BookRepository extends JpaRepository<Book, Long> {
    List<Object[]> getGenres(); // Used in Genre Distribution
 
 
+    /**
+     * Retrieves the total number of books and the total monetary value of all books.
+     *
+     * <p>The query returns a single {@code Object[]} with two elements:
+     * <ol>
+     *   <li>Total book count (as {@code Long})</li>
+     *   <li>Sum of all prices (as {@code BigDecimal}), or 0 if no books exist</li>
+     * </ol>
+     * </p>
+     *
+     * @return an array with two elements: [count, totalValue]
+     */
     @Query("SELECT COUNT(b), COALESCE(SUM(b.price), 0) FROM Book b")
     Object[] getCountAndTotalValue(); // Used in Library Statistics
 
-    @Modifying(clearAutomatically = true) // Clears the persistence context to avoid stale data
+    /**
+     * Deletes a book by its ID using a custom JPQL query.
+     *
+     * <p>This method bypasses the JPA lifecycle and does not load the entity
+     * into the persistence context. The {@link Modifying} annotation ensures
+     * the query is executed as an update. {@code clearAutomatically = true}
+     * clears the persistence context after deletion to prevent stale entity
+     * references.</p>
+     *
+     * @param id the ID of the book to delete
+     * @return the number of rows deleted (0 if no book with the given ID was found)
+     */
+    @Modifying(clearAutomatically = true) // Essentially it clears the persistence context to avoid stale data
     @Query("DELETE FROM Book b WHERE b.id = :id")
     int deleteBookById(@Param("id") Long id);
 

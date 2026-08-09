@@ -13,7 +13,16 @@ import java.util.Optional;
 @Repository
 public interface BookRepository extends JpaRepository<Book, Long> {
 
+    /**
+     * Finds all books whose title contains the given substring (case-insensitive).
+     *
+     * @param title the substring to search for in the title (non-null)
+     * @return a list of books with a title containing {@code title} (ignoring case),
+     *         or an empty list if none found
+     */
     List<Book> findByTitleContainingIgnoreCase(String title);
+
+
     List<Book> findByAuthorContainingIgnoreCase(String author);
     List<Book> findByGenreContainingIgnoreCase(String genre);
     List<Book> findByPriceLessThanEqual(BigDecimal price);

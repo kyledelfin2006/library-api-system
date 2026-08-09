@@ -86,8 +86,19 @@ public interface BookRepository extends JpaRepository<Book, Long> {
    @Query("SELECT SUM(b.price) FROM Book b")
    Optional<BigDecimal> sumTotalOfPrice();
 
+    /**
+     * Retrieves genre distribution counts.
+     *
+     * <p>The query returns a list of {@code Object[]} where each element contains
+     * the genre (as a {@code String}) and the count of books in that genre
+     * (as a {@code Long}).</p>
+     *
+     * @return a list of {@code Object[]} arrays, each with two elements:
+     *         [genre, count]
+     */
    @Query("SELECT b.genre, COUNT(b) FROM Book b GROUP BY b.genre")
    List<Object[]> getGenres(); // Used in Genre Distribution
+
 
     @Query("SELECT COUNT(b), COALESCE(SUM(b.price), 0) FROM Book b")
     Object[] getCountAndTotalValue(); // Used in Library Statistics

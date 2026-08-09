@@ -67,7 +67,14 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     List<Book> findBooksByPriceBetween(@Param("minPrice") BigDecimal minPrice,
                                        @Param("maxPrice") BigDecimal maxPrice);
 
-    // Finds the most expensive book
+    /**
+     * Retrieves the book with the highest price.
+     *
+     * <p>If multiple books share the same maximum price, only one is returned
+     * (the first encountered by the underlying query).</p>
+     *
+     * @return the most expensive book, or {@code null} if no books exist
+     */
     Book findTopByOrderByPriceDesc();
 
 

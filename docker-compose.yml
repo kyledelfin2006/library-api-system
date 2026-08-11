@@ -25,3 +25,6 @@ services:
     ports:
       - "8080:8080" # Maps host port 8080 to container port 8080
     restart: unless-stopped
+
+volumes:
+  postgres_data:

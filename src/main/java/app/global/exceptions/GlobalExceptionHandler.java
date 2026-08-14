@@ -25,6 +25,9 @@ import org.springframework.web.servlet.NoHandlerFoundException;
  * Intercepts exceptions thrown across the application and converts them into
  * standardized {@link ErrorResponse} JSON objects with appropriate HTTP status codes.
  * </p>
+ * <p>
+ * Slfj used class-wide to implement Slfj logging automatically without object declaration via Lombok Annotation
+ * </p>
  */
 @RestControllerAdvice
 @Slf4j
@@ -38,7 +41,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
-        logger.warn("Validation failed: {}", ex.getMessage());
+        log.warn("Validation failed: {}", ex.getMessage());
         ErrorResponse error = new ErrorResponse("Validation failed", ex.getMessage(), 400);
         return ResponseEntity.badRequest().body(error);
     }
@@ -51,7 +54,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(NumberFormatException.class)
     public ResponseEntity<ErrorResponse> handleNumberFormat(NumberFormatException ex) {
-        logger.warn("Number format error: {}", ex.getMessage());
+        log.warn("Number format error: {}", ex.getMessage());
         ErrorResponse error = new ErrorResponse("Invalid Number Format", ex.getMessage(), 400);
         return ResponseEntity.badRequest().body(error);
     }
@@ -135,7 +138,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(DataAccessException.class)
     public ResponseEntity<ErrorResponse> handleDataAccessError(DataAccessException ex) {
-        logger.error("Data Access error occurred", ex);
+        log.error("Data Access error occurred", ex);
         ErrorResponse error = new ErrorResponse("DataAccess error",
                 "An unexpected error occurred while trying to access the database", 500);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
@@ -152,7 +155,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
-        logger.warn("Data integrity violation", ex);
+        log.warn("Data integrity violation", ex);
         ErrorResponse error = new ErrorResponse("Data integrity violation",
                 "The operation would violate a database constraint", 409);
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
@@ -166,7 +169,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(BookNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleBookNotFound(BookNotFoundException ex) {
-        logger.warn("Book not found: {}", ex.getMessage());
+        log.warn("Book not found: {}", ex.getMessage());
         ErrorResponse error = new ErrorResponse("Book not found", ex.getMessage(), 404);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
@@ -182,7 +185,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(PropertyReferenceException.class)
     public ResponseEntity<ErrorResponse> handlePropertyReference(PropertyReferenceException ex) {
-        logger.error("Property reference error occurred", ex);
+        log.error("Property reference error occurred", ex);
         ErrorResponse error = new ErrorResponse("Property reference error", ex.getMessage(), 400);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
@@ -212,7 +215,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleEverythingElse(Exception ex) {
-        logger.error("Unexpected error occurred", ex);
+        log.error("Unexpected error occurred", ex);
         ErrorResponse error = new ErrorResponse("Internal server error", "Internal server malfunctioned.", 500);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }

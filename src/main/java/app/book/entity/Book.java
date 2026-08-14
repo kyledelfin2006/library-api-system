@@ -16,6 +16,9 @@ import java.math.BigDecimal;
  * <p>
  * The JSON serialization order is defined by {@link JsonPropertyOrder}.
  * </p>
+ * <p>
+ * Lombok provides boilerplate shortcuts for Getters,Setters,toString and Constructors via Lombok Annotations
+ * </p>
  */
 @Getter @Setter
 @ToString

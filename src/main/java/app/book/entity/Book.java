@@ -5,8 +5,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 
@@ -19,6 +18,9 @@ import java.math.BigDecimal;
  * </p>
  */
 @Getter @Setter
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "books")
 @JsonPropertyOrder({"id", "title", "author", "genre", "price"})
@@ -75,9 +77,6 @@ public class Book {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
-    // REQUIRED for JPA and Jackson deserialization
-    public Book() {}
-
     public Book(String title, String author, String genre, BigDecimal price) {
         this.title = title;
         this.author = author;
@@ -100,9 +99,4 @@ public class Book {
     public BigDecimal getPrice() { return price; }
     public void setPrice(BigDecimal price) { this.price = price; }
 
-    @Override
-    public String toString() {
-        return String.format("%-10s %-25s %-20s %-15s %10.2f",
-                id != null ? id : "NEW", title, author, genre, price);
-    }
 }

@@ -1,39 +1,20 @@
 package app.book.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class BookResponseDTO {
     private Long id;
     private String title;
     private String author;
     private String genre;
     private BigDecimal price;
-
-    // Required for JPA
-    public BookResponseDTO(){}
-
-    // No Authentication needed as it is processed by Request & Entity
-    public BookResponseDTO(Long id, String title, String author, String genre, BigDecimal price) {
-        this.id = id;
-        this.title = title;
-        this.author = author;
-        this.genre = genre;
-        this.price = price;
-    }
-
-    public Long getId() {
-        return id;
-    }
-    public String getTitle() {
-        return title;
-    }
-    public String getAuthor() {
-        return author;
-    }
-    public String getGenre() {
-        return genre;
-    }
-    public BigDecimal getPrice() {
-        return price;
-    }
 }

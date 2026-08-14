@@ -74,6 +74,14 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Lombok: for boilerplate reduction via annotations -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.46</version>
+            <scope>compile</scope>
+        </dependency>
+
     </dependencies>
 
     <build>

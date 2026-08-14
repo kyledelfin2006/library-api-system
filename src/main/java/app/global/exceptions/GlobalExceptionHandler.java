@@ -2,6 +2,7 @@ package app.global.exceptions;
 
 import app.book.exceptions.BookNotFoundException;
 import app.global.responses.ErrorResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -26,9 +27,8 @@ import org.springframework.web.servlet.NoHandlerFoundException;
  * </p>
  */
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
-
-    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     /**
      * Handles {@link IllegalArgumentException} for invalid input arguments.

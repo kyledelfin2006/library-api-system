@@ -8,6 +8,8 @@ import app.book.dto.BookRequestDTO;
 import app.book.mapper.BookMapper;
 import app.book.repository.BookRepository;
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -28,26 +30,22 @@ import java.util.stream.Collectors;
  * <p>All write operations are annotated with {@code @Transactional} to ensure
  * data consistency and enable automatic dirty checking.</p>
  *
- * @author Your Name
- * @version 1.0
+ * @author Kyle Delfin
  * @see BookRepository
  * @see BookMapper
  */
+@Slf4j
+@AllArgsConstructor
 @Service
 public class BookService {
+
+    /**
+     *  repository the data access object for book entities
+     *  mapper the component for converting between DTOs and entities
+     */
     private final BookRepository repository;
     private final BookMapper mapper;
 
-    /**
-     * Constructs a new {@code BookService} with the required dependencies.
-     *
-     * @param repository the data access object for book entities
-     * @param mapper     the component for converting between DTOs and entities
-     */
-    public BookService(BookRepository repository, BookMapper mapper) {
-        this.repository = repository;
-        this.mapper = mapper;
-    }
 
     /**
      * Retrieves a paginated list of all books.

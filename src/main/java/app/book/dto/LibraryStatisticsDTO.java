@@ -2,19 +2,15 @@ package app.book.dto;
 
 import java.math.BigDecimal;
 
-public class LibraryStatisticsDTO {
-    private final long totalBooks;
-    private final BigDecimal totalValue;
-    private final BookResponseDTO mostExpensiveBook;
+// why records are perfect here
+//This DTO is only used as a response – serialized to JSON, never deserialize from JSON.
+//
+//It has exactly three fields – all mandatory, no optional/nullable values.
+//
+//You never need to modify it – it's a read‑only snapshot of library statistics.
+//
+//No JPA or Spring‑specific behavior – it's a pure data object.
 
-    public LibraryStatisticsDTO(long totalBooks, BigDecimal totalValue, BookResponseDTO mostExpensiveBook) {
-        this.totalBooks = totalBooks;
-        this.totalValue = totalValue;
-        this.mostExpensiveBook = mostExpensiveBook;
-    }
 
-    // Getters
-    public long getTotalBooks() { return totalBooks; }
-    public BigDecimal getTotalValue() { return totalValue; }
-    public BookResponseDTO getMostExpensiveBook() { return mostExpensiveBook; }
+public record LibraryStatisticsDTO(long totalBooks, BigDecimal totalValue, BookResponseDTO mostExpensiveBook) {
 }

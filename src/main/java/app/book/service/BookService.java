@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
  * between the controller layer and the repository, translating DTOs to entities
  * and vice versa using {@link BookMapper}.
  * </p>
- *
  * <p>All write operations are annotated with {@code @Transactional} to ensure
  * data consistency and enable automatic dirty checking.</p>
  *

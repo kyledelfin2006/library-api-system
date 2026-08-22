@@ -91,6 +91,29 @@
                 <artifactId>spring-boot-maven-plugin</artifactId> <!-- Maven for Spring -->
             </plugin>
 
+            <!--
+            Maven Compiler Plugin with Lombok annotation processor
+            This tells the compiler to run Lombok BEFORE compiling,
+            so it generates all getters, setters, constructors, and the 'log' field.
+          -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.15.0</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <annotationProcessorPaths>
+                <!-- This is a special container that lists libraries that are allowed to modify or generate new Java code while the compiler is running. -->
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>

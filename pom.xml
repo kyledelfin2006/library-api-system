@@ -86,6 +86,11 @@
 
     <build>
         <plugins>
+
+            <!--
+            It turns normal JAR into an executable "fat JAR" that includes all your dependencies and a main class,
+             so you can run it with java -jar.
+            -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId> <!-- Maven for Spring -->

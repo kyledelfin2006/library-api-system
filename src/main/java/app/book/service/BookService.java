@@ -144,13 +144,30 @@ public class BookService {
      */
     @Transactional
     public Book replaceBook(Long id, BookRequestDTO updates) {
-        // 1. Fetch the existing book (throws 404 if not found)
+        // 1. Validate the incoming DTO (replace requires a complete, valid payload)
+        if (updates == null) {
+            throw new IllegalArgumentException("Book data must not be null");
+        }
+        if (!hasText(updates.getTitle())) {
+            throw new IllegalArgumentException("Title must not be blank");
+        }
+        if (!hasText(updates.getAuthor())) {
+            throw new IllegalArgumentException("Author must not be blank");
+        }
+        if (!hasText(updates.getGenre())) {
+            throw new IllegalArgumentException("Genre must not be blank");
+        }
+        if (updates.getPrice() == null || updates.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Price must be greater than 0");
+        }
+
+        // 2. Fetch the existing book (throws 404 if not found)
         Book existingBook = findBookById(id);
 
-        // 2. Update entire entity using BookMapper
+        // 3. Update entire entity using BookMapper
         mapper.updateBookFromDto(updates, existingBook);
 
-        // 3. Persist and return managed book entity through dirty checking
+        // 4. Persist and return managed book entity through dirty checking
         return existingBook;
     }
 

@@ -1,6 +1,6 @@
 services:
   db: # PostgreSQL database service
-    image: postgres:15
+    image: postgres:15 # Uses the official postgres docker image
     container_name: library-postgres
     environment: # Values injected from the .env file
       POSTGRES_DB: ${POSTGRES_DB}
@@ -16,7 +16,7 @@ services:
   app: # Spring Boot application service
     build: .
     container_name: library-app
-    depends_on:
+    depends_on: # Ensures that the database loads first before the app
       - db
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}

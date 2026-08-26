@@ -14,7 +14,7 @@ services:
     restart: unless-stopped
 
   app: # Spring Boot application service
-    build: . # Builds locally via dockerfile
+    build: . # Builds image locally via dockerfile
     container_name: library-app
     depends_on: # Ensures that the database loads first before the app
       - db

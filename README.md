@@ -86,10 +86,10 @@ src/main/java/app/
       ErrorResponse.java
 
 src/main/resources/
-  schema.sql
+  V1_create_books_table.sql
 
 src/test/java/
-  testAPI/
+  unit/
     BookTest.java
     BookServiceTest.java
 ```
@@ -138,7 +138,7 @@ src/test/java/
 ### Startup flow
 
 1. Spring Boot starts `app.LibraryApplication`.
-2. `schema.sql` initializes the `books` table and indexes.
+2. `V1_create_books_table.sql` initializes the `books` table and indexes.
 3. `SecurityConfig` allows all requests and disables CSRF.
 4. The API becomes ready at `http://localhost:8080`.
 
@@ -284,7 +284,7 @@ If you prefer to run the application directly on the host machine, start only Po
 ## Data Management
 
 - PostgreSQL 15 stores all book records.
-- `src/main/resources/schema.sql` creates the `books` table and indexes.
+- `src/main/resources/db/V1_create_books_table.sql` creates the `books` table and indexes.
 - The app uses JPA and Hibernate for entity persistence.
 - Updates rely on Hibernate dirty checking inside transactional service methods.
 - `BookRequestDTO` is used for request validation, while `BookResponseDTO` and `LibraryStatisticsDTO` are used for response shaping.

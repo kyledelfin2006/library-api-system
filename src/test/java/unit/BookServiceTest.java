@@ -1,4 +1,4 @@
-package testAPI;
+package unit;
 
 import app.book.exceptions.BookNotFoundException;
 import app.book.mapper.BookMapper;

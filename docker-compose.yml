@@ -16,7 +16,7 @@ services:
   app: # Spring Boot application service
     build: . # Builds image locally via dockerfile
     container_name: library-app
-    depends_on: # Ensures that the database loads first before the app
+    depends_on: # Ensures that the database starts first before the app
       - db
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB} # References the db container above

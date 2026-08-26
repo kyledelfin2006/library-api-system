@@ -91,6 +91,15 @@
             <scope>compile</scope>
         </dependency>
 
+        <!-- flyway for postgresql migrations -->
+        <!-- Source: https://mvnrepository.com/artifact/org.flywaydb/flyway-database-postgresql -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+            <version>13.3.0</version>
+            <scope>compile</scope>
+        </dependency>
+
     </dependencies>
 
     <build>

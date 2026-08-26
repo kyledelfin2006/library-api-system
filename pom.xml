@@ -18,6 +18,7 @@
         <java.version>25</java.version>
         <maven.compiler.source>25</maven.compiler.source>
         <maven.compiler.target>25</maven.compiler.target>
+        <lombok.version>1.18.46</lombok.version>
     </properties>
 
     <dependencies>

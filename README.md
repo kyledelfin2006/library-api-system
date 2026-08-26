@@ -284,7 +284,7 @@ If you prefer to run the application directly on the host machine, start only Po
 ## Data Management
 
 - PostgreSQL 15 stores all book records.
-- `src/main/resources/db/V1_create_books_table.sql` creates the `books` table and indexes.
+- `src/main/resources/db/migration/V1_create_books_table.sql` creates the `books` table and indexes.
 - The app uses JPA and Hibernate for entity persistence.
 - Updates rely on Hibernate dirty checking inside transactional service methods.
 - `BookRequestDTO` is used for request validation, while `BookResponseDTO` and `LibraryStatisticsDTO` are used for response shaping.

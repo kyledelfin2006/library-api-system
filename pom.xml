@@ -82,6 +82,15 @@
             <scope>compile</scope>
         </dependency>
 
+        <!-- flyway for database migrations -->
+        <!-- Source: https://mvnrepository.com/artifact/org.flywaydb/flyway-core -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>13.3.0</version>
+            <scope>compile</scope>
+        </dependency>
+
     </dependencies>
 
     <build>

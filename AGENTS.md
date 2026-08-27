@@ -2,27 +2,27 @@
 
 ## Purpose
 
-This file is the working guide for AI coding agents and human contributors to the Library API System. Read it before changing the project. It documents the repository as it exists, the intended architecture, the contracts between layers, and the checks expected before a contribution is considered complete.
+This file is the working guide for AI coding agents and human contributors to the Libro: Library API System. Read it before changing the project. It documents the repository as it exists, the intended architecture, the contracts between layers, and the checks expected before a contribution is considered complete.
 
 The application is a single-module Spring Boot REST API for managing a library's book collection. It exposes CRUD, search, pagination, sorting, price filtering, aggregation, and health endpoints backed by PostgreSQL.
 
 ## Project Snapshot
 
-| Concern | Current choice |
-|---|---|
-| Language | Java 25 |
-| Framework | Spring Boot 4.1.0 |
-| Build | Maven, producing an executable Spring Boot JAR |
-| HTTP layer | Spring MVC |
-| Persistence | Spring Data JPA and Hibernate |
-| Database | PostgreSQL 15 |
-| Schema management | Flyway SQL migrations |
-| Validation | Jakarta Bean Validation |
+| Concern | Current choice                                                          |
+|---|-------------------------------------------------------------------------|
+| Language | Java 25                                                                 |
+| Framework | Spring Boot 4.1.0                                                       |
+| Build | Maven, producing an executable Spring Boot JAR                          |
+| HTTP layer | Spring MVC                                                              |
+| Persistence | Spring Data JPA and Hibernate                                           |
+| Database | PostgreSQL 18                                                           |
+| Schema management | Flyway SQL migrations                                                   |
+| Validation | Jakarta Bean Validation                                                 |
 | Security | Spring Security filter chain; all requests currently permitted and CSRF disabled |
-| Boilerplate reduction | Lombok 1.18.46 |
-| Testing | JUnit 5, Mockito, Jakarta Validator |
-| Coverage | JaCoCo report during Maven `verify` |
-| Containers | Dockerfile plus Docker Compose |
+| Boilerplate reduction | Lombok 1.18.46                                                          |
+| Testing | JUnit 5, Mockito, Jakarta Validator                                     |
+| Coverage | JaCoCo report during Maven `verify`                                     |
+| Containers | Dockerfile plus Docker Compose                                          |
 
 The Maven coordinates are `kyle.com:library-api-system:1.0-SNAPSHOT`. There is no Maven Wrapper in the repository, so local commands require a compatible `mvn` installation unless Maven is added or supplied by the development environment.
 
@@ -330,7 +330,7 @@ Book-related code is grouped under `app.book`, while cross-cutting concerns live
 
 ### Repository pattern
 
-The repository abstracts persistence and lets Spring Data generate routine implementations. Service code depends on a narrow data-access interface instead of an `EntityManager` or SQL details.
+The repository abstracts persistence and let's Spring Data generate routine implementations. Service code depends on a narrow data-access interface instead of an `EntityManager` or SQL details.
 
 ### DTO pattern
 

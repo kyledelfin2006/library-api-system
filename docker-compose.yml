@@ -1,6 +1,6 @@
 services:
   db: # PostgreSQL database service
-    image: postgres:15 # Uses the official postgres docker image
+    image: postgres:18-alpine # Uses the official postgres docker image
     container_name: library-postgres
     environment: # Values injected from the .env file
       POSTGRES_DB: ${POSTGRES_DB}

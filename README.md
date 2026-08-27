@@ -2,10 +2,10 @@
 
 ![Java](https://img.shields.io/badge/Java-25-orange?logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.0-6DB33F?logo=springboot&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791?logo=postgresql&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-336791?logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?logo=docker&logoColor=white)
 
-Libro is a Spring Boot REST API for managing books with CRUD operations, search, pagination, sorting, range filtering, genre analytics, and statistics. It uses DTO-driven validation, centralized exception handling, and a Docker-first workflow backed by PostgreSQL 15 with Flyway database migrations.
+Libro is a Spring Boot REST API for managing books with CRUD operations, search, pagination, sorting, range filtering, genre analytics, and statistics. It uses DTO-driven validation, centralized exception handling, and a Docker-first workflow backed by PostgreSQL 18 with Flyway database migrations.
 
 ## Tech Stack
 
@@ -13,7 +13,7 @@ Libro is a Spring Boot REST API for managing books with CRUD operations, search,
 | --- | --- |
 | Language | Java 25 |
 | Framework | Spring Boot 4.1.0 (Web, Data JPA, Security, Validation) |
-| Database | PostgreSQL 15 |
+| Database | PostgreSQL 18 |
 | Migrations | Flyway 13.3.0 |
 | Containerization | Docker & Docker Compose |
 | Build Tool | Maven 3.x |
@@ -48,7 +48,7 @@ flowchart TD
     C["Client"] --> A["BookAPI<br/>Controller"]
     A --> S["BookService<br/>Business Logic<br/>@Transactional"]
     S --> R["BookRepository<br/>JpaRepository"]
-    R --> D[("PostgreSQL 15<br/>books table")]
+    R --> D[("PostgreSQL 18<br/>books table")]
     A -. validation / errors .-> E["GlobalExceptionHandler<br/>@RestControllerAdvice"]
     S -. validation / errors .-> E
     E --> F["ApiResponse / ErrorResponse"]
@@ -69,7 +69,7 @@ flowchart TD
     S["<b>Service Layer (BookService)</b><br/>Business logic · Transaction boundaries<br/>Orchestrates Repository"]
     R["<b>Repository Layer (BookRepository)</b><br/>Spring Data JPA abstraction<br/>Query methods · Custom JPQL queries"]
     P["<b>Persistence Layer (JPA / Hibernate)</b><br/>Entity management · Dirty checking<br/>Flush / commit · Maps objects to tables"]
-    D["<b>Database (PostgreSQL 15)</b><br/>Tables · Indexes · Constraints<br/>Flyway migrations"]
+    D["<b>Database (PostgreSQL 18)</b><br/>Tables · Indexes · Constraints<br/>Flyway migrations"]
     X["<b>Cross-cutting Concerns</b><br/>DTOs · BookMapper<br/>GlobalExceptionHandler · SecurityConfig"]
 
     C --> S --> R --> P --> D
@@ -251,7 +251,7 @@ public LibraryStatisticsDTO getLibraryStatistics() {
 
 ### Recommended: Docker
 
-Docker is the preferred way to run the project because it brings up both PostgreSQL 15 and the Spring Boot application together.
+Docker is the preferred way to run the project because it brings up both PostgreSQL 18 and the Spring Boot application together.
 
 1. Create your environment file from the example:
     ```bash
@@ -313,7 +313,7 @@ If you prefer to run the application directly on the host machine, start only Po
 
 ## Data Management
 
-- PostgreSQL 15 stores all book records.
+- PostgreSQL 18 stores all book records.
 - Flyway manages schema changes via versioned SQL migrations in `src/main/resources/db/migration/`.
   - `V1_create_books_table.sql` creates the `books` table and indexes.
   - `V2_create_users_table.sql` prepares the `users` table for the upcoming user entity.

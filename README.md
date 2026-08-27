@@ -63,55 +63,19 @@ flowchart TD
 ### Layered Design
 
 ```mermaid
+%%{init: {"flowchart": {"nodeSpacing": 12, "rankSpacing": 18}, "themeVariables": {"fontSize": "12px"}}}%%
 flowchart TD
-    subgraph Controller ["Controller Layer (BookAPI)"]
-        A1["HTTP routing"]
-        A2["Request validation"]
-        A3["Response mapping"]
-        A4["Delegates to Service"]
-    end
+    C["<b>Controller Layer (BookAPI)</b><br/>HTTP routing · Request validation<br/>Response mapping · Delegates to Service"]
+    S["<b>Service Layer (BookService)</b><br/>Business logic · Transaction boundaries<br/>Orchestrates Repository"]
+    R["<b>Repository Layer (BookRepository)</b><br/>Spring Data JPA abstraction<br/>Query methods · Custom JPQL queries"]
+    P["<b>Persistence Layer (JPA / Hibernate)</b><br/>Entity management · Dirty checking<br/>Flush / commit · Maps objects to tables"]
+    D["<b>Database (PostgreSQL 15)</b><br/>Tables · Indexes · Constraints<br/>Flyway migrations"]
+    X["<b>Cross-cutting Concerns</b><br/>DTOs · BookMapper<br/>GlobalExceptionHandler · SecurityConfig"]
 
-    subgraph Service ["Service Layer (BookService)"]
-        B1["Business logic"]
-        B2["Transaction boundaries"]
-        B3["Orchestrates Repository"]
-    end
-
-    subgraph Repository ["Repository Layer (BookRepository)"]
-        C1["Spring Data JPA abstraction"]
-        C2["Query methods"]
-        C3["Custom JPQL queries"]
-    end
-
-    subgraph Persistence ["Persistence Layer (JPA / Hibernate)"]
-        D1["Entity management"]
-        D2["Dirty checking"]
-        D3["Flush / commit"]
-        D4["Maps objects to tables"]
-    end
-
-    subgraph Database ["Database (PostgreSQL 15)"]
-        E1["Tables"]
-        E2["Indexes"]
-        E3["Constraints"]
-        E4["Flyway migrations"]
-    end
-
-    Controller --> Service
-    Service --> Repository
-    Repository --> Persistence
-    Persistence --> Database
-
-    subgraph CrossCutting ["Cross-cutting Concerns"]
-        F1["DTOs"]
-        F2["BookMapper"]
-        F3["GlobalExceptionHandler"]
-        F4["SecurityConfig"]
-    end
-
-    CrossCutting -.-> Controller
-    CrossCutting -.-> Service
-    CrossCutting -.-> Repository
+    C --> S --> R --> P --> D
+    X -.-> C
+    X -.-> S
+    X -.-> R
 ```
 
 ## File Structure

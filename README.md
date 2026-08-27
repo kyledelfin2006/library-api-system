@@ -5,37 +5,43 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791?logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?logo=docker&logoColor=white)
 
-Libro is a Spring Boot REST API for managing books with CRUD operations, search, pagination, sorting, range filtering, genre analytics, and statistics. It uses DTO-driven validation, centralized exception handling, and a Docker-first workflow backed by PostgreSQL 15.
+Libro is a Spring Boot REST API for managing books with CRUD operations, search, pagination, sorting, range filtering, genre analytics, and statistics. It uses DTO-driven validation, centralized exception handling, and a Docker-first workflow backed by PostgreSQL 15 with Flyway database migrations.
+
+## Tech Stack
+
+| Layer | Technology / Framework |
+| --- | --- |
+| Language | Java 25 |
+| Framework | Spring Boot 4.1.0 (Web, Data JPA, Security, Validation) |
+| Database | PostgreSQL 15 |
+| Migrations | Flyway 13.3.0 |
+| Containerization | Docker & Docker Compose |
+| Build Tool | Maven 3.x |
+| Code Generation | Lombok 1.18.46 |
+| Testing | JUnit 5, Mockito, JaCoCo |
+| Serialization | Jackson (JSON) |
+| Validation | Jakarta Validation (JSR-380) |
 
 ## Table of Contents
 
-* [Quick Start](https://github.com/kyledelfin2006/library-api-system#quick-start)
 * [Architecture Overview](https://github.com/kyledelfin2006/library-api-system#architecture-overview)
+* [Layered Design](https://github.com/kyledelfin2006/library-api-system#layered-design)
 * [File Structure](https://github.com/kyledelfin2006/library-api-system#file-structure)
 * [Core Design Patterns](https://github.com/kyledelfin2006/library-api-system#core-design-patterns)
 * [Key Features](https://github.com/kyledelfin2006/library-api-system#key-features)
-* [Workflow & Lifecycle](https://github.com/kyledelfin2006/library-api-system#workflow--lifecycle)
+* [Request Lifecycle](https://github.com/kyledelfin2006/library-api-system#request-lifecycle)
 * [Code Highlights](https://github.com/kyledelfin2006/library-api-system#code-highlights)
 * [API Endpoints](https://github.com/kyledelfin2006/library-api-system#api-endpoints)
 * [Setup & Installation](https://github.com/kyledelfin2006/library-api-system#setup--installation)
 * [Troubleshooting](https://github.com/kyledelfin2006/library-api-system#troubleshooting)
 * [Data Management](https://github.com/kyledelfin2006/library-api-system#data-management)
-* [Problems Solved](https://github.com/kyledelfin2006/library-api-system#problems-solved)
+* [Problems I Solved](https://github.com/kyledelfin2006/library-api-system#problems-i-solved)
 * [Upcoming Improvements](https://github.com/kyledelfin2006/library-api-system#upcoming-improvements)
 * [License](https://github.com/kyledelfin2006/library-api-system#license)
 
 ## Architecture Overview
 
-The application follows a clean layered architecture:
-
-- `app.book.controller.BookAPI` handles HTTP requests and response mapping.
-- `app.book.service.BookService` contains business logic and transaction boundaries.
-- `app.book.repository.BookRepository` extends `JpaRepository` and handles persistence.
-- `app.book.entity.Book` is the JPA entity mapped to the `books` table.
-- `app.book.dto` contains request and response DTOs.
-- `app.book.mapper.BookMapper` converts between entities and DTOs.
-- `app.global.exceptions.GlobalExceptionHandler` centralizes API error handling.
-- `app.auth.SecurityConfig` permits all requests and disables CSRF.
+The application follows a strict **layered architecture** where each layer has a single responsibility and communicates only with adjacent layers.
 
 ```mermaid
 flowchart TD
@@ -52,6 +58,60 @@ flowchart TD
 
     class C,A,S,R,E,F default
     class D db
+```
+
+### Layered Design
+
+```mermaid
+flowchart TD
+    subgraph Controller ["Controller Layer (BookAPI)"]
+        A1["HTTP routing"]
+        A2["Request validation"]
+        A3["Response mapping"]
+        A4["Delegates to Service"]
+    end
+
+    subgraph Service ["Service Layer (BookService)"]
+        B1["Business logic"]
+        B2["Transaction boundaries"]
+        B3["Orchestrates Repository"]
+    end
+
+    subgraph Repository ["Repository Layer (BookRepository)"]
+        C1["Spring Data JPA abstraction"]
+        C2["Query methods"]
+        C3["Custom JPQL queries"]
+    end
+
+    subgraph Persistence ["Persistence Layer (JPA / Hibernate)"]
+        D1["Entity management"]
+        D2["Dirty checking"]
+        D3["Flush / commit"]
+        D4["Maps objects to tables"]
+    end
+
+    subgraph Database ["Database (PostgreSQL 15)"]
+        E1["Tables"]
+        E2["Indexes"]
+        E3["Constraints"]
+        E4["Flyway migrations"]
+    end
+
+    Controller --> Service
+    Service --> Repository
+    Repository --> Persistence
+    Persistence --> Database
+
+    subgraph CrossCutting ["Cross-cutting Concerns"]
+        F1["DTOs"]
+        F2["BookMapper"]
+        F3["GlobalExceptionHandler"]
+        F4["SecurityConfig"]
+    end
+
+    CrossCutting -.-> Controller
+    CrossCutting -.-> Service
+    CrossCutting -.-> Repository
 ```
 
 ## File Structure
@@ -86,7 +146,11 @@ src/main/java/app/
       ErrorResponse.java
 
 src/main/resources/
-  V1_create_books_table.sql
+  application.properties
+  db/
+    migration/
+      V1_create_books_table.sql
+      V2_create_users_table.sql
 
 src/test/java/
   unit/
@@ -96,12 +160,13 @@ src/test/java/
 
 ## Core Design Patterns
 
-- Layered architecture keeps HTTP, business, and persistence concerns separate.
-- DTO-based request handling protects the entity model and keeps validation at the boundary.
-- Transactional service methods rely on Hibernate dirty checking, so updates are flushed automatically when the managed entity changes.
-- Centralized exception handling ensures consistent JSON failures across validation, not-found, database, and parsing errors.
-- Repository abstraction through Spring Data JPA keeps persistence code small and testable.
-- Mapper pattern centralizes entity-DTO conversion to avoid duplication.
+- **Layered Architecture** keeps HTTP, business, and persistence concerns separate and testable.
+- **DTO-based request handling** protects the entity model and keeps validation at the boundary.
+- **Transactional service methods** rely on Hibernate dirty checking, so updates are flushed automatically when the managed entity changes.
+- **Centralized exception handling** ensures consistent JSON failures across validation, not-found, database, and parsing errors.
+- **Repository abstraction** through Spring Data JPA keeps persistence code small and expressive.
+- **Mapper pattern** centralizes entity-DTO conversion to avoid duplication across controllers and services.
+- **Flyway migrations** version the database schema alongside application code.
 
 ## Key Features
 
@@ -115,30 +180,31 @@ src/test/java/
 - Validation with `@Valid` on create and replace requests.
 - Global handling for `BookNotFoundException`, validation errors, malformed JSON, number format errors, database issues, and unsupported methods.
 - Open security configuration for local development and testing.
+- Versioned database schema via Flyway.
 
-## Workflow & Lifecycle
+## Request Lifecycle
 
-### Request flow
+### Create flow (`POST /app/books/add`)
 
-1. The client sends an HTTP request to `/app/books`.
-2. `BookAPI` maps the request and converts payloads into DTOs.
-3. `BookService` performs business logic and validation.
-4. `BookRepository` persists or reads data via Spring Data JPA.
-5. PostgreSQL stores the data in the `books` table.
-6. `GlobalExceptionHandler` formats failures into `ErrorResponse`.
+1. Client sends a JSON payload to `/app/books/add`.
+2. `BookAPI` receives the request and binds it to `BookRequestDTO`.
+3. `@Valid` triggers Jakarta Validation on the DTO.
+4. On success, `BookService.addBook()` converts the DTO to an entity via `BookMapper`.
+5. `BookRepository.save()` persists the entity and returns the generated ID.
+6. The controller maps the saved entity to `BookResponseDTO` and returns `201 Created`.
 
-### Update flow
+### Update flow (`PATCH /app/books/{id}`)
 
-1. The controller passes the incoming DTO to `BookService`.
-2. The service loads the managed `Book` entity.
-3. Field changes are applied to the managed entity.
+1. The controller passes the incoming DTO to `BookService.patchBook()`.
+2. The service loads the managed `Book` entity via `findBookById()`.
+3. Field changes are applied conditionally to the managed entity.
 4. Hibernate dirty checking detects the modifications.
-5. The transaction commits and flushes the update without an explicit `save()` call for the update path.
+5. The transaction commits and flushes the update without an explicit `save()` call.
 
 ### Startup flow
 
 1. Spring Boot starts `app.LibraryApplication`.
-2. `V1_create_books_table.sql` initializes the `books` table and indexes.
+2. Flyway runs `V1_create_books_table.sql` and `V2_create_users_table.sql` in order.
 3. `SecurityConfig` allows all requests and disables CSRF.
 4. The API becomes ready at `http://localhost:8080`.
 
@@ -284,14 +350,15 @@ If you prefer to run the application directly on the host machine, start only Po
 ## Data Management
 
 - PostgreSQL 15 stores all book records.
-- `src/main/resources/db/migration/V1_create_books_table.sql` creates the `books` table and indexes.
-- The app uses JPA and Hibernate for entity persistence.
+- Flyway manages schema changes via versioned SQL migrations in `src/main/resources/db/migration/`.
+  - `V1_create_books_table.sql` creates the `books` table and indexes.
+  - `V2_create_users_table.sql` prepares the `users` table for the upcoming user entity.
+- The app uses JPA and Hibernate for entity persistence with `ddl-auto=validate`.
 - Updates rely on Hibernate dirty checking inside transactional service methods.
 - `BookRequestDTO` is used for request validation, while `BookResponseDTO` and `LibraryStatisticsDTO` are used for response shaping.
 - `BookMapper` centralizes conversion between entities and DTOs.
 
-
-## Problems Solved
+## Problems I Solved
 
 - **Tight Coupling**: Solved by using constructor-based dependency injection, interface-driven design (`BookService`, `BookRepository`), and the `BookMapper` component. The controller depends on abstractions rather than concrete implementations, making the codebase testable and easy to extend.
 - **Memory Leaking**: Solved by using `@Modifying(clearAutomatically = true)` on the delete query to flush and clear the persistence context, preventing stale entity accumulation. Pagination on `/app/books/all` also prevents loading the entire table into memory.

@@ -3,8 +3,6 @@ package app.global.exceptions;
 import app.book.exceptions.BookNotFoundException;
 import app.global.responses.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;

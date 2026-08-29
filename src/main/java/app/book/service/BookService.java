@@ -66,9 +66,12 @@ public class BookService {
      */
     @Transactional
     public Book addBook(BookRequestDTO input) {
+        log.debug("Processing request to add book: {}", input.getTitle());
+
         // Use the mapper to convert DTO → Entity (keeps construction centralized)
         Book newBook = mapper.toEntity(input);
         repository.save(newBook);
+
         log.info("Successfully added book '{}' to catalogue with ID: {}", newBook.getTitle(), newBook.getId());
         return newBook;
     }

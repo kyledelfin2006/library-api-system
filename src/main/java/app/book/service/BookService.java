@@ -69,6 +69,7 @@ public class BookService {
         // Use the mapper to convert DTO → Entity (keeps construction centralized)
         Book newBook = mapper.toEntity(input);
         repository.save(newBook);
+        log.info("Successfully added book '{}' to catalogue with ID: {}", newBook.getTitle(), newBook.getId());
         return newBook;
     }
 
@@ -82,6 +83,27 @@ public class BookService {
     public Book findBookById(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new BookNotFoundException("Couldn't find book of ID: " + id));
+    }
+
+    /**
+     * Deletes a book by its ID.
+     * <p>
+     * Uses a custom JPQL delete query to avoid loading the entity first.
+     * </p>
+     *
+     * @param id the ID of the book to delete
+     * @throws BookNotFoundException if no book exists with the given ID
+     */
+    @Transactional
+    public void deleteBookById(Long id) {
+        log.debug("Attempting to delete book with ID: {}", id);
+
+        int deletedCount = repository.deleteBookById(id); // Returns the amount of rows deleted
+
+        if (deletedCount == 0) { // If no row is deleted, it means no id matched that book to delete.
+            log.warn("Failed delete operation: Book with ID {} not found", id);
+            throw new BookNotFoundException("Couldn't find book of ID: " + id);
+        }
     }
 
     /**
@@ -169,23 +191,6 @@ public class BookService {
 
         // 4. Persist and return managed book entity through dirty checking
         return existingBook;
-    }
-
-    /**
-     * Deletes a book by its ID.
-     * <p>
-     * Uses a custom JPQL delete query to avoid loading the entity first.
-     * </p>
-     *
-     * @param id the ID of the book to delete
-     * @throws BookNotFoundException if no book exists with the given ID
-     */
-    @Transactional
-    public void deleteBookById(Long id) {
-        int deletedCount = repository.deleteBookById(id); // Returns the amount of rows deleted
-        if (deletedCount == 0) { // If no row is deleted, it means no id matched that book to delete.
-            throw new BookNotFoundException("Couldn't find book of ID: " + id);
-        }
     }
 
     /**

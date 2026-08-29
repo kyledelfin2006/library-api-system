@@ -97,12 +97,12 @@ public class BookAPI {
            @PageableDefault(size = 12, sort = "id") Pageable pageable) {
 
         // 1. Get page as book entity
-        Page<Book> page = service.getBooks(pageable);
+        Page<Book> pageEntity = service.getBooks(pageable);
 
         // 2. Map from book entity to response dto
-        Page<BookResponseDTO> dtopage = page.map(mapper::toResponseDTO);
+        Page<BookResponseDTO> pageResponse = pageEntity.map(mapper::toResponseDTO);
 
-        return ResponseEntity.ok(dtopage);
+        return ResponseEntity.ok(pageResponse);
     }
 
     @GetMapping("/sorted")

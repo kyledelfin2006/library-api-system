@@ -2,7 +2,6 @@ package app.book.dto;
 
 import java.math.BigDecimal;
 
-// why records are perfect here
 //This DTO is only used as a response – serialized to JSON, never deserialize from JSON.
 //
 //It has exactly three fields – all mandatory, no optional/nullable values.

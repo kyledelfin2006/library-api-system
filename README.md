@@ -21,6 +21,7 @@ Libro is a Spring Boot REST API for managing books with CRUD operations, search,
 | Testing | JUnit 5, Mockito, JaCoCo |
 | Serialization | Jackson (JSON) |
 | Validation | Jakarta Validation (JSR-380) |
+| Logging | SLF4J via Lombok `@Slf4j` |
 
 ## Table of Contents
 

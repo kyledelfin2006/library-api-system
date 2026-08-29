@@ -247,7 +247,7 @@ Never edit a migration that may have been applied to a shared or persistent data
 
 ### Lombok
 
-Compile-time annotation processing generates DTO/entity accessors, constructors, `toString`, service constructor injection, and SLF4J logger fields. The compiler plugin explicitly includes the Lombok processor. Contributors need IDE annotation-processing support for accurate editor diagnostics, though Maven remains authoritative.
+Compile-time annotation processing generates DTO/entity accessors, constructors, `toString`, service constructor injection, and SLF4J logger fields through the `@Slf4j` annotation. The compiler plugin explicitly includes the Lombok processor. Contributors need IDE annotation-processing support for accurate editor diagnostics, though Maven remains authoritative.
 
 ### `spring-boot-starter-test`
 
@@ -417,7 +417,7 @@ Keep commits focused. Do not mix schema changes, API-breaking response changes, 
 - Validate both structure (`@Valid`) and cross-field/business rules (service layer).
 - Use parameterized JPQL or derived queries. Never concatenate untrusted values into queries.
 - Restrict client-controlled sort fields with an allowlist.
-- Use SLF4J parameterized logging; do not use `System.out`.
+- Use SLF4J parameterized logging through Lombok's `@Slf4j`; do not use `System.out`.
 - Avoid logging complete request bodies if they may later contain sensitive data.
 - Keep public exceptions meaningful but free of internal implementation details.
 - Add concise Javadoc where a method's contract, transaction behavior, or query shape is not obvious.

@@ -89,6 +89,7 @@ buildNumber.properties
 *.lock
 data/
 logs/
+.env
 
 # ============================================
 # OS GENERATED FILES
@@ -112,6 +113,6 @@ Thumbs.db
 *.zip
 *.tar
 *.rar
-.env
 .txt
 proposed.project.structured.txt
+.run/

@@ -133,6 +133,46 @@ src/test/java/
 - **Mapper pattern** centralizes entity-DTO conversion to avoid duplication across controllers and services.
 - **Flyway migrations** version the database schema alongside application code.
 
+## DTO-Wrapped Entity Models
+
+The application never exposes `Book` (or future entity) objects directly to clients. All inbound data is wrapped in request DTOs, and all outbound data is wrapped in response DTOs.
+
+### Rules
+
+- **Never** instantiate an entity directly from client input.
+- **Never** return an entity directly in a controller response.
+- Controllers always accept `BookRequestDTO` and return `BookResponseDTO` (or other DTOs).
+- `BookMapper` is the sole conversion point between entities and DTOs.
+
+### Why This Matters
+
+1. **Decouples the entity model from the client-facing API**
+   The database schema can evolve independently of the API contract. If a column is renamed or removed in the database, only the mapper and entity need to change; the JSON contract stays stable.
+
+2. **Ties the entity model only to the database**
+   Entities represent persistence state, not API state. This keeps JPA/Hibernate concerns isolated and prevents accidental leakage of database-only fields (e.g., audit timestamps, soft-delete flags) into API responses.
+
+3. **Prevents accidental data leaks**
+   Response DTOs explicitly choose which fields are exposed. Sensitive or internal fields never appear in JSON unless intentionally added to the response DTO.
+
+4. **Enforces request validation at the boundary**
+   `BookRequestDTO` carries Jakarta Validation annotations (`@NotBlank`, `@Size`, `@NotNull`, `@Positive`). `@Valid` in the controller triggers these constraints before any business logic runs, ensuring only valid data reaches the service layer.
+
+5. **Allows response customization**
+   Response DTOs can reshape, rename, compute, or omit fields without changing the entity. For example, `LibraryStatisticsDTO` aggregates data from multiple repository calls into a single read-only snapshot.
+
+### Example
+
+```java
+// Controller accepts only the request DTO
+@PostMapping("/add")
+public ResponseEntity<ApiResponse<BookResponseDTO>> addBook(@Valid @RequestBody BookRequestDTO input) {
+    Book newBook = service.addBook(input);           // DTO -> Entity inside service/mapper
+    return ResponseEntity.status(HttpStatus.CREATED)
+            .body(new ApiResponse<>(true, "Book Added Successfully", mapper.toResponseDTO(newBook)));
+}
+```
+
 ## Key Features
 
 - CRUD operations for books.

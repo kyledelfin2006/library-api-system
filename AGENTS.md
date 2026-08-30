@@ -334,7 +334,13 @@ The repository abstracts persistence and let's Spring Data generate routine impl
 
 ### DTO pattern
 
-Request and response models isolate external contracts from JPA entities. Validation belongs on inbound DTOs; entity constraints remain a defense-in-depth persistence invariant.
+Request and response models isolate external contracts from JPA entities. Validation belongs on inbound DTOs; entity constraints remain a defense-in-depth persistence invariant. **Entity objects must never be instantiated directly from client input, and must never be returned directly to clients.** All controller inputs are request DTOs (e.g., `BookRequestDTO`) and all controller outputs are response DTOs (e.g., `BookResponseDTO`, `LibraryStatisticsDTO`). `BookMapper` is the sole conversion point.
+
+Reasons:
+1. Decouples the entity model from the client-facing API so the database schema can evolve independently.
+2. Ties the entity model only to the database for data integrity and prevents accidental leakage of database-only fields.
+3. Enables request validation at the boundary via Jakarta Validation on request DTOs.
+4. Allows response customization without changing entities, including aggregation into read-only DTOs like `LibraryStatisticsDTO`.
 
 ### Mapper pattern
 
@@ -411,7 +417,7 @@ Keep commits focused. Do not mix schema changes, API-breaking response changes, 
 - Use Java 25 features only when they improve clarity and remain compatible with the configured toolchain.
 - Prefer constructor injection and immutable dependencies.
 - Keep controllers thin and services responsible for business rules.
-- Return DTOs, not entities, at API boundaries.
+- Return DTOs, not entities, at API boundaries. Entity objects must never be instantiated from client input or returned directly to clients; always use request and response DTOs with `BookMapper` as the conversion point.
 - Use `BigDecimal` for money and define rounding explicitly if a calculation can produce additional scale.
 - Trim and normalize user input deliberately; do not silently change semantics in only one endpoint.
 - Validate both structure (`@Valid`) and cross-field/business rules (service layer).

@@ -117,3 +117,5 @@ Thumbs.db
 proposed.project.structured.txt
 .run/
 .kilo
+# Ignore docs folder
+docs/

@@ -65,7 +65,8 @@ library-api-system/
     |           `-- V2_create_users_table.sql
     `-- test/java/unit/
         |-- BookServiceTest.java
-        `-- BookTest.java
+        |-- BookTest.java
+        `-- GlobalExceptionHandlerTest.java
 ```
 
 Keep production code below the root `app` package. `LibraryApplication` sits at that root so Spring's default component scan discovers controllers, services, repositories, mappers, advice, and configuration beneath it.
@@ -368,8 +369,9 @@ Current coverage consists of:
 
 - `BookServiceTest`: Mockito-based service unit tests for CRUD rules, dirty-checking expectations, search, sorting, pricing, and aggregates.
 - `BookTest`: entity construction and direct Jakarta Validator checks for request DTO constraints.
+- `GlobalExceptionHandlerTest`: direct unit tests for all 12 exception handlers, including status/error contracts, validation-message aggregation, and non-leakage of internal parser, database, constraint, and fallback exception details.
 
-The tests do not currently prove controller routing, JSON serialization, security behavior, JPA query correctness, Flyway migration success, PostgreSQL compatibility, or transaction/dirty-checking behavior in a real persistence context. Mockito tests that verify no `save` call document intent but do not substitute for a JPA integration test.
+The exception-handler tests verify direct Java method behavior without loading Spring MVC. The tests do not currently prove controller routing, JSON serialization, security behavior, JPA query correctness, Flyway migration success, PostgreSQL compatibility, or transaction/dirty-checking behavior in a real persistence context. Mockito tests that verify no `save` call document intent but do not substitute for a JPA integration test.
 
 Choose test scope based on the change:
 

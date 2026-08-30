@@ -24,26 +24,54 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Isolated unit tests for {@link BookService} business rules and repository orchestration.
+ *
+ * <p>{@link MockitoExtension} creates the mocks before each test and injects them into the
+ * service under test. The suite never starts Spring, Hibernate, or a database. Consequently,
+ * assertions about dirty checking verify that the service does not call {@code save}; actual
+ * persistence-context flushing remains an integration-test concern.</p>
+ */
 @ExtendWith(MockitoExtension.class)
 class BookServiceTest {
 
+    /** Mocked persistence boundary used to define query results and verify repository calls. */
     @Mock
     private BookRepository repository;
 
+    /**
+     * Mocked DTO/entity conversion boundary. Individual tests opt into real mapper behavior only
+     * when the mapping itself is needed to exercise the service path.
+     */
     @Mock
     private BookMapper mapper;
 
+    /** Service under test, constructed by Mockito with {@link #repository} and {@link #mapper}. */
     @InjectMocks
     private BookService bookService;
 
+    /** Canonical persisted entity fixture reset before every test. */
     private Book sampleBook;
+
+    /** Canonical valid create/replace request fixture reset before every test. */
     private BookRequestDTO sampleBookRequestDTO;
+
+    /** Stable identifier used by lookup, update, and delete scenarios. */
     private final Long BOOK_ID = 1L;
+
+    /** Expected title shared by the canonical fixtures. */
     private final String TITLE = "Effective Java";
+
+    /** Expected author shared by the canonical fixtures. */
     private final String AUTHOR = "Joshua Bloch";
+
+    /** Expected genre shared by the canonical fixtures. */
     private final String GENRE = "Programming";
+
+    /** Expected positive monetary value shared by the canonical fixtures. */
     private final @Positive(message = "Price must be greater than 0") BigDecimal PRICE = new BigDecimal("45.0");
 
+    /** Rebuilds mutable fixtures before each test to prevent state leakage between scenarios. */
     @BeforeEach
     void setUp() {
         sampleBook = new Book(TITLE, AUTHOR, GENRE, PRICE);
@@ -53,6 +81,7 @@ class BookServiceTest {
     }
 
     // ---------- addBook ----------
+    /** Verifies that a valid request is mapped, saved once, and returned as a populated entity. */
     @Test
     void addBook_shouldSaveAndReturnBook() {
         when(mapper.toEntity(any(BookRequestDTO.class))).thenCallRealMethod();
@@ -69,6 +98,7 @@ class BookServiceTest {
     }
 
     // ---------- findBookById ----------
+    /** Verifies that an entity returned by the repository is passed back unchanged. */
     @Test
     void findBookById_whenBookExists_shouldReturnBook() {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
@@ -79,6 +109,7 @@ class BookServiceTest {
         verify(repository, times(1)).findById(BOOK_ID);
     }
 
+    /** Verifies that an empty repository result is translated to {@link BookNotFoundException}. */
     @Test
     void findBookById_whenBookNotFound_shouldThrowBookNotFoundException() {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.empty());
@@ -88,6 +119,7 @@ class BookServiceTest {
     }
 
     // ---------- patchBook ----------
+    /** Verifies partial replacement of title and price while omitted fields remain unchanged. */
     @Test
     void patchBook_shouldUpdateOnlyProvidedFields() {
         // Given an existing book
@@ -108,6 +140,7 @@ class BookServiceTest {
         verify(repository, never()).save(any());
     }
 
+    /** Verifies that an author-only PATCH does not modify title, genre, or price. */
     @Test
     void patchBook_shouldUpdateOnlyAuthorWhenOnlyAuthorProvided() {
         Book existing = new Book("Old Title", "Old Author", "Old Genre", new BigDecimal("10.0"));
@@ -125,6 +158,7 @@ class BookServiceTest {
         verify(repository, never()).save(any());
     }
 
+    /** Verifies that a genre-only PATCH does not modify title, author, or price. */
     @Test
     void patchBook_shouldUpdateOnlyGenreWhenOnlyGenreProvided() {
         Book existing = new Book("Old Title", "Old Author", "Old Genre", new BigDecimal("10.0"));
@@ -142,6 +176,7 @@ class BookServiceTest {
         verify(repository, never()).save(any());
     }
 
+    /** Verifies that blank text and null values are treated as absent PATCH fields. */
     @Test
     void patchBook_whenAllFieldsBlankOrNull_shouldLeaveBookUnchanged() {
         Book existing = new Book("Old Title", "Old Author", "Old Genre", new BigDecimal("10.0"));
@@ -160,6 +195,7 @@ class BookServiceTest {
         verify(repository, never()).save(any());
     }
 
+    /** Verifies that a null PATCH price preserves the existing monetary value. */
     @Test
     void patchBook_whenPriceIsNull_shouldLeavePriceUnchanged() {
         Book existing = new Book("Old Title", "Old Author", "Old Genre", new BigDecimal("10.0"));
@@ -175,6 +211,7 @@ class BookServiceTest {
         verify(repository, never()).save(any());
     }
 
+    /** Verifies that a negative PATCH price is rejected before persistence. */
     @Test
     void patchBook_whenPriceIsZeroOrNegative_shouldThrowIllegalArgumentException() {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
@@ -184,6 +221,7 @@ class BookServiceTest {
         verify(repository, never()).save(any());
     }
 
+    /** Verifies that zero is rejected because prices must be strictly positive. */
     @Test
     void patchBook_whenPriceIsExactlyZero_shouldThrowIllegalArgumentException() {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
@@ -193,6 +231,7 @@ class BookServiceTest {
         verify(repository, never()).save(any());
     }
 
+    /** Verifies that PATCH delegates missing-entity handling to the service lookup contract. */
     @Test
     void patchBook_whenBookNotFound_shouldThrowBookNotFoundException() {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.empty());
@@ -203,6 +242,7 @@ class BookServiceTest {
     }
 
     // ---------- replaceBook ----------
+    /** Verifies PUT semantics by replacing every mutable field through the mapper. */
     @Test
     void replaceBook_shouldReplaceAllFields() {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
@@ -216,12 +256,14 @@ class BookServiceTest {
         assertEquals("New Genre", result.getGenre());
         assertEquals(0, new BigDecimal("99.99").compareTo(result.getPrice()));}
 
+    /** Verifies that a null replacement payload is rejected before repository interaction. */
     @Test
     void replaceBook_whenDtoIsNull_shouldThrowIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class, () -> bookService.replaceBook(BOOK_ID, null));
         verify(repository, never()).save(any());
     }
 
+    /** Verifies that PUT requires a non-null title. */
     @Test
     void replaceBook_whenDtoHasNullTitle_shouldThrowIllegalArgumentException() {
         BookRequestDTO invalidDto = new BookRequestDTO(null, "Author", "Genre", new BigDecimal("20.0"));
@@ -230,6 +272,7 @@ class BookServiceTest {
         verify(repository, never()).save(any());
     }
 
+    /** Verifies that PUT rejects titles containing only whitespace. */
     @Test
     void replaceBook_whenDtoHasEmptyTitle_shouldThrowIllegalArgumentException() {
         BookRequestDTO invalidDto = new BookRequestDTO("   ", "Author", "Genre", new BigDecimal("20.0"));
@@ -238,6 +281,7 @@ class BookServiceTest {
         verify(repository, never()).save(any());
     }
 
+    /** Verifies that PUT requires a non-null author. */
     @Test
     void replaceBook_whenDtoHasNullAuthor_shouldThrowIllegalArgumentException() {
         BookRequestDTO invalidDto = new BookRequestDTO("Title", null, "Genre", new BigDecimal("20.0"));
@@ -246,6 +290,7 @@ class BookServiceTest {
         verify(repository, never()).save(any());
     }
 
+    /** Verifies that PUT rejects blank authors. */
     @Test
     void replaceBook_whenDtoHasEmptyAuthor_shouldThrowIllegalArgumentException() {
         BookRequestDTO invalidDto = new BookRequestDTO("Title", "", "Genre", new BigDecimal("20.0"));
@@ -254,6 +299,7 @@ class BookServiceTest {
         verify(repository, never()).save(any());
     }
 
+    /** Verifies that PUT requires a non-null genre. */
     @Test
     void replaceBook_whenDtoHasNullGenre_shouldThrowIllegalArgumentException() {
         BookRequestDTO invalidDto = new BookRequestDTO("Title", "Author", null, new BigDecimal("20.0"));
@@ -262,6 +308,7 @@ class BookServiceTest {
         verify(repository, never()).save(any());
     }
 
+    /** Verifies that PUT rejects genres containing only whitespace. */
     @Test
     void replaceBook_whenDtoHasEmptyGenre_shouldThrowIllegalArgumentException() {
         BookRequestDTO invalidDto = new BookRequestDTO("Title", "Author", "  ", new BigDecimal("20.0"));
@@ -270,6 +317,7 @@ class BookServiceTest {
         verify(repository, never()).save(any());
     }
 
+    /** Verifies that PUT rejects a zero price. */
     @Test
     void replaceBook_whenDtoHasPriceZero_shouldThrowIllegalArgumentException() {
         BookRequestDTO invalidDto = new BookRequestDTO("Title", "Author", "Genre", BigDecimal.ZERO);
@@ -278,6 +326,7 @@ class BookServiceTest {
         verify(repository, never()).save(any());
     }
 
+    /** Verifies that PUT rejects a negative price. */
     @Test
     void replaceBook_whenDtoHasNegativePrice_shouldThrowIllegalArgumentException() {
         BookRequestDTO invalidDto = new BookRequestDTO("Title", "Author", "Genre", new BigDecimal("-10.0"));
@@ -286,6 +335,7 @@ class BookServiceTest {
         verify(repository, never()).save(any());
     }
 
+    /** Verifies that a valid replacement still fails when its target entity does not exist. */
     @Test
     void replaceBook_whenBookNotFound_shouldThrowBookNotFoundException() {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.empty());
@@ -296,6 +346,7 @@ class BookServiceTest {
     }
 
     // ---------- getBooksWithinBudget ----------
+    /** Verifies delegation to the inclusive less-than-or-equal budget repository query. */
     @Test
     void getBooksWithinBudget_shouldReturnBooksWithPriceLessThanOrEqual() {
         List<Book> expected = Arrays.asList(sampleBook, new Book("Cheap", "Author", "Genre", new BigDecimal("10.0")));
@@ -308,6 +359,7 @@ class BookServiceTest {
     }
 
     // ---------- searchBooks ----------
+    /** Verifies author searches use the case-insensitive contains repository method. */
     @Test
     void searchBooks_byAuthor_shouldReturnMatchingBooks() {
         List<Book> expected = List.of(sampleBook);
@@ -319,6 +371,7 @@ class BookServiceTest {
         verify(repository, times(1)).findByAuthorContainingIgnoreCase("Bloch");
     }
 
+    /** Verifies search-type normalization is case-insensitive and trims surrounding whitespace. */
     @Test
     void searchBooks_byAuthor_isCaseAndWhitespaceInsensitiveForType() {
         List<Book> expected = List.of(sampleBook);
@@ -330,6 +383,7 @@ class BookServiceTest {
         verify(repository, times(1)).findByAuthorContainingIgnoreCase("Bloch");
     }
 
+    /** Verifies title searches use the case-insensitive contains repository method. */
     @Test
     void searchBooks_byTitle_shouldReturnMatchingBooks() {
         List<Book> expected = List.of(sampleBook);
@@ -341,6 +395,7 @@ class BookServiceTest {
         verify(repository, times(1)).findByTitleContainingIgnoreCase("Effective");
     }
 
+    /** Verifies genre searches use the case-insensitive contains repository method. */
     @Test
     void searchBooks_byGenre_shouldReturnMatchingBooks() {
         List<Book> expected = List.of(sampleBook);
@@ -352,6 +407,7 @@ class BookServiceTest {
         verify(repository, times(1)).findByGenreContainingIgnoreCase("Program");
     }
 
+    /** Verifies price text is converted to {@link BigDecimal} and matched exactly. */
     @Test
     void searchBooks_byPrice_shouldReturnBooksWithMatchingPrice() {
         List<Book> expected = List.of(sampleBook);
@@ -364,12 +420,14 @@ class BookServiceTest {
         verify(repository, times(1)).findByPrice(new BigDecimal("45"));
     }
 
+    /** Verifies malformed price text is rejected without invoking the price repository query. */
     @Test
     void searchBooks_byPrice_withInvalidNumber_shouldThrowIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class, () -> bookService.searchBooks("price", "not-a-number"));
         verify(repository, never()).findByPrice(any(BigDecimal.class));
     }
 
+    /** Verifies unsupported search fields are rejected instead of becoming dynamic queries. */
     @Test
     void searchBooks_withInvalidType_shouldThrowIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class, () -> bookService.searchBooks("invalid", "value"));
@@ -377,6 +435,7 @@ class BookServiceTest {
     }
 
     // ---------- getBooksSortedBy ----------
+    /** Verifies an allowed field creates an ascending Spring Data {@link Sort}. */
     @Test
     void getBooksSortedBy_validField_shouldReturnSortedList() {
         List<Book> expected = List.of(sampleBook);
@@ -388,6 +447,7 @@ class BookServiceTest {
         verify(repository, times(1)).findAll(Sort.by("title").ascending());
     }
 
+    /** Verifies sort-field normalization before constructing the ascending sort. */
     @Test
     void getBooksSortedBy_validFieldMixedCaseWithWhitespace_shouldReturnSortedList() {
         List<Book> expected = List.of(sampleBook);
@@ -399,12 +459,14 @@ class BookServiceTest {
         verify(repository, times(1)).findAll(Sort.by("price").ascending());
     }
 
+    /** Verifies the sort allowlist rejects unknown entity properties. */
     @Test
     void getBooksSortedBy_invalidField_shouldThrowIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class, () -> bookService.getBooksSortedBy("invalidField"));
         verify(repository, never()).findAll(any(Sort.class));
     }
 
+    /** Verifies a null sort field returns the repository's natural unsorted result. */
     @Test
     void getBooksSortedBy_nullField_shouldReturnAllUnsorted() {
         List<Book> expected = List.of(sampleBook);
@@ -417,6 +479,7 @@ class BookServiceTest {
         verify(repository, never()).findAll(any(Sort.class));
     }
 
+    /** Verifies a whitespace-only sort field returns the unsorted result. */
     @Test
     void getBooksSortedBy_emptyField_shouldReturnAllUnsorted() {
         List<Book> expected = List.of(sampleBook);
@@ -430,6 +493,7 @@ class BookServiceTest {
     }
 
     // ---------- getTotalLibraryValue ----------
+    /** Verifies that a repository aggregate is returned as the total collection value. */
     @Test
     void getTotalLibraryValue_whenBooksExist_shouldReturnSum() {
         when(repository.sumTotalOfPrice()).thenReturn(Optional.of(new BigDecimal("150.0")));
@@ -440,6 +504,7 @@ class BookServiceTest {
         verify(repository, times(1)).sumTotalOfPrice();
     }
 
+    /** Verifies that an empty SUM result is represented as {@link BigDecimal#ZERO}. */
     @Test
     void getTotalLibraryValue_whenNoBooks_shouldReturnZero() {
         when(repository.sumTotalOfPrice()).thenReturn(Optional.empty());
@@ -451,6 +516,7 @@ class BookServiceTest {
     }
 
     // ---------- findMostExpensiveBook ----------
+    /** Verifies that the repository's highest-priced entity is returned unchanged. */
     @Test
     void findMostExpensiveBook_shouldReturnBookWithHighestPrice() {
         when(repository.findTopByOrderByPriceDesc()).thenReturn(sampleBook);
@@ -461,6 +527,7 @@ class BookServiceTest {
         verify(repository, times(1)).findTopByOrderByPriceDesc();
     }
 
+    /** Verifies that a populated AVG aggregate is returned without numerical distortion. */
     @Test
     void getAveragePrice_whenBooksExist_shouldReturnAverage() {
         when(repository.getAveragePrice()).thenReturn(Optional.of(new BigDecimal("25.50")));
@@ -468,6 +535,7 @@ class BookServiceTest {
         assertEquals(0, new BigDecimal("25.50").compareTo(avg));
     }
 
+    /** Verifies that an empty AVG result is represented as {@link BigDecimal#ZERO}. */
     @Test
     void getAveragePrice_whenNoBooks_shouldReturnZero() {
         when(repository.getAveragePrice()).thenReturn(Optional.empty());
@@ -475,6 +543,7 @@ class BookServiceTest {
         assertEquals(BigDecimal.ZERO, avg);
     }
 
+    /** Verifies that an empty collection has no most-expensive book and returns {@code null}. */
     @Test
     void findMostExpensiveBook_whenNoBooks_shouldReturnNull() {
         when(repository.findTopByOrderByPriceDesc()).thenReturn(null);

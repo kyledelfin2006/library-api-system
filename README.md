@@ -36,6 +36,7 @@ Libro is a Spring Boot REST API for managing books with CRUD operations, search,
 * [Setup & Installation](https://github.com/kyledelfin2006/library-api-system#setup--installation)
 * [Troubleshooting](https://github.com/kyledelfin2006/library-api-system#troubleshooting)
 * [Data Management](https://github.com/kyledelfin2006/library-api-system#data-management)
+* [Testing](https://github.com/kyledelfin2006/library-api-system#testing)
 * [Problems I Solved](https://github.com/kyledelfin2006/library-api-system#problems-i-solved)
 * [Upcoming Improvements](https://github.com/kyledelfin2006/library-api-system#upcoming-improvements)
 * [License](https://github.com/kyledelfin2006/library-api-system#license)
@@ -121,6 +122,7 @@ src/test/java/
   unit/
     BookTest.java
     BookServiceTest.java
+    GlobalExceptionHandlerTest.java
 ```
 
 ## Core Design Patterns
@@ -362,6 +364,34 @@ If you prefer to run the application directly on the host machine, start only Po
 - Updates rely on Hibernate dirty checking inside transactional service methods.
 - `BookRequestDTO` is used for request validation, while `BookResponseDTO` and `LibraryStatisticsDTO` are used for response shaping.
 - `BookMapper` centralizes conversion between entities and DTOs.
+
+## Testing
+
+The project uses JUnit 5, Mockito, AssertJ, Jakarta Validator, and JaCoCo. Its current unit suites cover entity and DTO validation, service-layer behavior, and global REST exception translation.
+
+- `BookTest` verifies book construction and request DTO constraints.
+- `BookServiceTest` verifies service rules, repository interaction, search, sorting, pricing, aggregates, and dirty-checking expectations.
+- `GlobalExceptionHandlerTest` directly invokes each of the 12 exception handlers and verifies HTTP status, public error fields, validation-message aggregation, and protection against leaking parser, database, constraint, or fallback exception details.
+
+Run all unit tests:
+
+```powershell
+mvn clean test
+```
+
+Run only the global exception-handler tests:
+
+```powershell
+mvn -Dtest=GlobalExceptionHandlerTest test
+```
+
+Generate the JaCoCo report at `target/site/jacoco/index.html`:
+
+```powershell
+mvn clean verify
+```
+
+These are isolated unit tests. Controller routing and serialization, repository queries, Flyway migrations, PostgreSQL behavior, security rules, and real JPA transaction behavior still require integration-test coverage.
 
 ## Problems I Solved
 

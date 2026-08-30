@@ -12,8 +12,20 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Unit tests for the {@link Book} constructor and the Jakarta Validation contract exposed by
+ * {@link BookRequestDTO}.
+ *
+ * <p>This suite has no mocked dependencies. Entity construction is tested as a plain Java
+ * operation, while DTO constraints are exercised with a real Jakarta {@link Validator}. No
+ * Spring application context, repository, or database is started.</p>
+ */
 class BookTest {
 
+    /**
+     * Verifies that the convenience constructor copies every supplied value and leaves the
+     * generated identifier {@code null} until persistence assigns it.
+     */
     @Test
     void testCreateValidBook() {
         Book book = new Book("1984", "Orwell", "Fiction", new BigDecimal("15.99"));
@@ -27,6 +39,10 @@ class BookTest {
         assertNull(book.getId()); // This is the correct state after construction.
     }
 
+    /**
+     * Verifies that blank titles, missing authors, and non-positive prices each produce their
+     * documented validation message on an invalid request DTO.
+     */
     @Test
     void testBookDtoValidationConstraints() {
         // 1. Set up the Jakarta Validator
@@ -52,6 +68,9 @@ class BookTest {
                 "Missing validation error for price less than or equal to 0");
     }
 
+    /**
+     * Verifies that a complete DTO satisfying every constraint produces no violations.
+     */
     @Test
     void testValidBookDtoPassesValidation() {
         // 1. Set up Validator

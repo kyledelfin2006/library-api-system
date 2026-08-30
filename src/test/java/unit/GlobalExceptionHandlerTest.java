@@ -109,10 +109,9 @@ class GlobalExceptionHandlerTest {
     /**
      * Verifies that an unmapped route reports both the attempted HTTP method and URL.
      *
-     * @throws NoHandlerFoundException retained for compatibility with the framework constructor
      */
     @Test
-    void shouldReturnNotFoundWhenNoHandlerExistsForEndpoint() throws NoHandlerFoundException {
+    void shouldReturnNotFoundWhenNoHandlerExistsForEndpoint() {
         NoHandlerFoundException exception = new NoHandlerFoundException("GET", "/invalid-url", null);
 
         ResponseEntity<ErrorResponse> response = handler.handleEndpointNotFound(exception);
@@ -150,6 +149,7 @@ class GlobalExceptionHandlerTest {
 
         assertError(response, HttpStatus.INTERNAL_SERVER_ERROR, "DataAccess error",
                 "An unexpected error occurred while trying to access the database");
+        assert response.getBody() != null;
         assertThat(response.getBody().getDetails())
                 .doesNotContain("SELECT", "secret", "credentials");
     }
@@ -166,6 +166,7 @@ class GlobalExceptionHandlerTest {
 
         assertError(response, HttpStatus.CONFLICT, "Data integrity violation",
                 "The operation would violate a database constraint");
+        assert response.getBody() != null;
         assertThat(response.getBody().getDetails()).doesNotContain("books_title_key", "duplicate key");
     }
 
@@ -226,6 +227,7 @@ class GlobalExceptionHandlerTest {
 
         assertError(response, HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error",
                 "Internal server malfunctioned.");
+        assert response.getBody() != null;
         assertThat(response.getBody().getDetails()).doesNotContain("Sensitive implementation detail");
     }
 

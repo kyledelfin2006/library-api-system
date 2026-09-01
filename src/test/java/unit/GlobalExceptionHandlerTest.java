@@ -1,14 +1,15 @@
 package unit;
 
+import app.book.entity.Book;
 import app.book.exceptions.BookNotFoundException;
 import app.global.exceptions.GlobalExceptionHandler;
 import app.global.responses.ErrorResponse;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.MethodParameter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.core.PropertyReferenceException;
+import org.springframework.data.core.TypeInformation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -24,8 +25,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Direct unit tests for every public exception-mapping method in
@@ -36,20 +35,13 @@ import static org.mockito.Mockito.when;
  * context: the suite proves response construction, while controller-advice discovery and HTTP
  * serialization remain integration-test concerns.</p>
  *
- * <p>Most exception instances are real framework objects. Mockito is used only where constructing
- * the Spring exception would require unrelated framework metadata, namely
- * {@link PropertyReferenceException} and {@link MethodArgumentTypeMismatchException}.</p>
+ * <p>Every exception is a real framework object, keeping this dependency-free handler suite free
+ * of mocking and instrumentation startup.</p>
  */
 class GlobalExceptionHandlerTest {
 
-    /** Fresh dependency-free handler instance used as the system under test. */
-    private GlobalExceptionHandler handler;
-
-    /** Recreates the handler before each test so each scenario is isolated. */
-    @BeforeEach
-    void setUp() {
-        handler = new GlobalExceptionHandler();
-    }
+    /** Stateless dependency-free handler shared by every isolated scenario. */
+    private static final GlobalExceptionHandler handler = new GlobalExceptionHandler();
     /** Verifies that invalid business arguments become a descriptive HTTP 400 response. */
     @Test
     void shouldReturnBadRequestWhenIllegalArgumentExceptionThrown() {
@@ -188,8 +180,8 @@ class GlobalExceptionHandlerTest {
      */
     @Test
     void shouldReturnBadRequestWhenPropertyReferenceIsInvalid() {
-        PropertyReferenceException exception = mock(PropertyReferenceException.class);
-        when(exception.getMessage()).thenReturn("No property 'unknownField' found for type 'Book'");
+        PropertyReferenceException exception = new PropertyReferenceException(
+                "unknownField", TypeInformation.of(Book.class), List.of());
 
         ResponseEntity<ErrorResponse> response = handler.handlePropertyReference(exception);
 
@@ -203,14 +195,15 @@ class GlobalExceptionHandlerTest {
     /**
      * Verifies that query/path type mismatches identify both the rejected value and parameter.
      *
-     * <p>The exception is mocked because the handler consumes only {@code getValue()} and
-     * {@code getName()}; constructing its reflective method metadata would not add coverage.</p>
+     * <p>A local method parameter supplies the minimal real Spring metadata required by the
+     * exception constructor.</p>
      */
     @Test
-    void shouldReturnBadRequestWhenMethodArgumentTypeDoesNotMatch() {
-        MethodArgumentTypeMismatchException exception = mock(MethodArgumentTypeMismatchException.class);
-        when(exception.getValue()).thenReturn("not-a-number");
-        when(exception.getName()).thenReturn("maxPrice");
+    void shouldReturnBadRequestWhenMethodArgumentTypeDoesNotMatch() throws NoSuchMethodException {
+        MethodParameter parameter = new MethodParameter(
+                GlobalExceptionHandlerTest.class.getDeclaredMethod("validationTarget", Object.class), 0);
+        MethodArgumentTypeMismatchException exception = new MethodArgumentTypeMismatchException(
+                "not-a-number", Number.class, "maxPrice", parameter, null);
 
         ResponseEntity<ErrorResponse> response = handler.handleTypeMismatch(exception);
 

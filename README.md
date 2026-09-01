@@ -121,9 +121,14 @@ src/main/resources/
 
 src/test/java/
   unit/
+    BookMapperTest.java
     BookTest.java
     BookServiceTest.java
     GlobalExceptionHandlerTest.java
+
+src/test/resources/
+  junit-platform.properties
+  logback-test.xml
 ```
 
 ## Core Design Patterns
@@ -359,9 +364,8 @@ If you prefer to run the application directly on the host machine, start only Po
 
 - PostgreSQL 18 stores all book records.
 - Flyway manages schema changes via versioned SQL migrations in `src/main/resources/db/migration/`.
-  - `V1_create_books_table.sql` creates the `books` table and indexes.
-  - `V2_create_users_table.sql` prepares the `users` table for the upcoming user entity.
-  - `V3__add_created_at_to_books.sql` adds the non-null `created_at` timestamp and fills existing rows with the current database time.
+  - `V1_create_books_table.sql` creates the `books` table with the `created_at` column and indexes.
+  - `V2_create_users_table.sql` currently has no SQL content (placeholder for future users table).
 - The app uses JPA and Hibernate for entity persistence with `ddl-auto=validate`.
 - `Book.createdAt` maps to `books.created_at` and is set automatically on insert. It is intentionally omitted from `BookResponseDTO`, so clients do not receive it and cannot provide it through create, patch, or replace requests.
 - Updates rely on Hibernate dirty checking inside transactional service methods.
@@ -370,12 +374,24 @@ If you prefer to run the application directly on the host machine, start only Po
 
 ## Testing
 
-The project uses JUnit 5, Mockito, AssertJ, Jakarta Validator, and JaCoCo. Its current unit suites cover entity and DTO validation, service-layer behavior, and global REST exception translation.
+The project uses JUnit 5, Mockito, AssertJ, Jakarta Validator, and JaCoCo. Its 61 unit tests cover entity and DTO validation, mapper behavior, service-layer behavior, and global REST exception translation without starting Spring, Hibernate, PostgreSQL, or Docker.
 
 - `BookTest` verifies book construction and request DTO constraints.
 - `BookMapperTest` verifies field mapping, null handling, list mapping, empty-list handling, and that `createdAt` is omitted from response JSON.
 - `BookServiceTest` verifies service rules, repository interaction, search, sorting, pricing, aggregates, and dirty-checking expectations.
 - `GlobalExceptionHandlerTest` directly invokes each of the 12 exception handlers and verifies HTTP status, public error fields, validation-message aggregation, and protection against leaking parser, database, constraint, or fallback exception details.
+
+### Unit-test performance
+
+The suite is configured for fast, deterministic feedback:
+
+- Test classes run concurrently through `junit-platform.properties`, while methods inside each class remain sequential to protect shared fixtures.
+- `BookServiceTest` creates its repository mock and service once, resets the mock before each scenario, and uses the real stateless `BookMapper`.
+- `BookTest` creates one Jakarta `ValidatorFactory` for the class and closes it after all validation tests.
+- `GlobalExceptionHandlerTest` uses one stateless handler and real Spring exception objects instead of unnecessary mocks.
+- `logback-test.xml` disables application logs during tests so expected exception scenarios do not spend time printing stack traces.
+
+The optimization retained all 61 tests and their assertions. On the Java 25 development machine used for verification on September 1, 2026, a warm `mvn test` completed in **5.098 seconds**, `mvn clean test` completed in **10.579 seconds**, and `mvn clean verify` completed in **12.596 seconds**. These measurements are reference results rather than performance guarantees; first-time dependency downloads and machine resources can change the total.
 
 Run all unit tests:
 
@@ -399,6 +415,7 @@ These are isolated unit tests. Controller routing and serialization, repository 
 
 ## Problems I Solved
 
+- **Slow Unit-Test Feedback Loop**: The 61-test suite had been observed taking approximately 54 seconds on its first run and 24 seconds on a subsequent run. I kept the same 61 tests and behavioral assertions while removing repeated fixture initialization, reusing and resetting the service-layer mock safely, sharing and closing the Jakarta Validator factory, replacing unnecessary exception mocks with real objects, suppressing test-only log noise, and running independent test classes concurrently. The optimized suite completed a verified warm Maven run in 5.098 seconds on the development machine.
 - **Tight Coupling**: Solved by using constructor-based dependency injection, interface-driven design (`BookService`, `BookRepository`), and the `BookMapper` component. The controller depends on abstractions rather than concrete implementations, making the codebase testable and easy to extend.
 - **Memory Leaking**: Solved by using `@Modifying(clearAutomatically = true)` on the delete query to flush and clear the persistence context, preventing stale entity accumulation. Pagination on `/app/books/all` also prevents loading the entire table into memory.
 - **Read And Write Concurrency Error**: Solved by isolating write operations inside `@Transactional` boundaries. Dirty checking and automatic flushing ensure that concurrent reads do not interfere with in-progress writes, and transactions are rolled back on failure to preserve data integrity.

@@ -6,6 +6,7 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -22,6 +23,14 @@ import static org.junit.jupiter.api.Assertions.*;
  * Spring application context, repository, or database is started.</p>
  */
 class BookTest {
+
+    private static final ValidatorFactory VALIDATOR_FACTORY = Validation.buildDefaultValidatorFactory();
+    private static final Validator VALIDATOR = VALIDATOR_FACTORY.getValidator();
+
+    @AfterAll
+    static void closeValidatorFactory() {
+        VALIDATOR_FACTORY.close();
+    }
 
     /**
      * Verifies that the convenience constructor copies every supplied value and leaves the
@@ -46,21 +55,13 @@ class BookTest {
      */
     @Test
     void testBookDtoValidationConstraints() {
-        // 1. Set up the Jakarta Validator
-        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-        Validator validator = factory.getValidator();
-
-        // 2. Create an INVALID DTO (empty title, null author, negative price)
+        // Create an INVALID DTO (empty title, null author, negative price)
         BookRequestDTO invalidDto = new BookRequestDTO("", null, "Fiction", new BigDecimal("-5.0"));
 
-        // 3. Run the validation
-        Set<ConstraintViolation<BookRequestDTO>> violations = validator.validate(invalidDto);
+        Set<ConstraintViolation<BookRequestDTO>> violations = VALIDATOR.validate(invalidDto);
 
-        // 4. Assert that validation failed
         assertFalse(violations.isEmpty(), "Expected validation errors but got none");
 
-        // 5. (Optional) Check that the specific error messages are present
-        // This is good for ensuring the right rules fired.
         assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("Title cannot be empty")),
                 "Missing validation error for empty title");
         assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("Author cannot be empty")),
@@ -74,17 +75,10 @@ class BookTest {
      */
     @Test
     void testValidBookDtoPassesValidation() {
-        // 1. Set up Validator
-        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-        Validator validator = factory.getValidator();
-
-        // 2. Create a fully valid DTO
         BookRequestDTO validDto = new BookRequestDTO("The Hobbit", "J.R.R. Tolkien", "Fantasy", new BigDecimal("12.99"));
 
-        // 3. Validate
-        Set<ConstraintViolation<BookRequestDTO>> violations = validator.validate(validDto);
+        Set<ConstraintViolation<BookRequestDTO>> violations = VALIDATOR.validate(validDto);
 
-        // 4. Assert that NO violations exist
         assertTrue(violations.isEmpty(), "Expected zero validation errors for a valid DTO, but got: " + violations);
     }
 

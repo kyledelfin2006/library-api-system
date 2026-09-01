@@ -145,7 +145,7 @@ Aggregate repository methods currently return low-level shapes (`Object[]` and `
 | `author` | `String` | `VARCHAR(50)` | Nonblank, not null |
 | `genre` | `String` | `VARCHAR(50)` | Nonblank, not null |
 | `price` | `BigDecimal` | `DECIMAL(10,2)` | Not null, positive at application boundary |
-| `createdAt` | `LocalDateTime` | `TIMESTAMP` | Not null, set on insert, immutable after creation |
+| `createdAt` | `LocalDateTime` | `TIMESTAMP` | Not null, set on insert, immutable after creation, omitted from response DTOs |
 
 Use `BigDecimal` for all money-related values and comparisons. Do not replace it with `double` or `float`. Use `compareTo` for numerical equality in tests because `BigDecimal.equals` also compares scale.
 
@@ -155,7 +155,7 @@ The V1 migration creates indexes on title, author, genre, and price. PostgreSQL 
 
 `BookRequestDTO` is the inbound contract. It validates required text lengths and positive, non-null prices. Unknown JSON fields are ignored by Jackson.
 
-`BookResponseDTO` is the regular outbound book shape and includes the read-only `createdAt` timestamp. `LibraryStatisticsDTO` is an immutable Java record containing total count, total value, and the most expensive book response.
+`BookResponseDTO` is the regular outbound book shape and intentionally omits the internal `createdAt` timestamp. `LibraryStatisticsDTO` is an immutable Java record containing total count, total value, and the most expensive book response.
 
 `BookMapper` centralizes:
 

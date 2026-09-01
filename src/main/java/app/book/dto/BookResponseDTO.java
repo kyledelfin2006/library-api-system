@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -16,4 +17,5 @@ public class BookResponseDTO {
     private String author;
     private String genre;
     private BigDecimal price;
+    private LocalDateTime createdAt;
 }

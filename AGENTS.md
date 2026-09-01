@@ -62,8 +62,10 @@ library-api-system/
     |       |-- application.properties
     |       `-- db/migration/
     |           |-- V1_create_books_table.sql
-    |           `-- V2_create_users_table.sql
+    |           |-- V2_create_users_table.sql
+    |           `-- V3__add_created_at_to_books.sql
     `-- test/java/unit/
+        |-- BookMapperTest.java
         |-- BookServiceTest.java
         |-- BookTest.java
         `-- GlobalExceptionHandlerTest.java
@@ -143,6 +145,7 @@ Aggregate repository methods currently return low-level shapes (`Object[]` and `
 | `author` | `String` | `VARCHAR(50)` | Nonblank, not null |
 | `genre` | `String` | `VARCHAR(50)` | Nonblank, not null |
 | `price` | `BigDecimal` | `DECIMAL(10,2)` | Not null, positive at application boundary |
+| `createdAt` | `LocalDateTime` | `TIMESTAMP` | Not null, set on insert, immutable after creation |
 
 Use `BigDecimal` for all money-related values and comparisons. Do not replace it with `double` or `float`. Use `compareTo` for numerical equality in tests because `BigDecimal.equals` also compares scale.
 
@@ -152,7 +155,7 @@ The V1 migration creates indexes on title, author, genre, and price. PostgreSQL 
 
 `BookRequestDTO` is the inbound contract. It validates required text lengths and positive, non-null prices. Unknown JSON fields are ignored by Jackson.
 
-`BookResponseDTO` is the regular outbound book shape. `LibraryStatisticsDTO` is an immutable Java record containing total count, total value, and the most expensive book response.
+`BookResponseDTO` is the regular outbound book shape and includes the read-only `createdAt` timestamp. `LibraryStatisticsDTO` is an immutable Java record containing total count, total value, and the most expensive book response.
 
 `BookMapper` centralizes:
 
@@ -282,7 +285,7 @@ Important persistence settings:
 
 ## Database Migration Rules
 
-`V1_create_books_table.sql` creates `books` and its indexes. `V2_create_users_table.sql` currently has no SQL content. Treat its version as reserved if Flyway has already recorded it; do not repurpose an applied migration without checking database history.
+`V1_create_books_table.sql` creates `books` and its indexes. `V2_create_users_table.sql` currently has no SQL content. `V3__add_created_at_to_books.sql` adds the non-null `created_at` column and fills existing rows with the current database time. Treat an applied migration as immutable; add the next version instead of editing it.
 
 For every schema change:
 

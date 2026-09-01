@@ -8,6 +8,7 @@ import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -85,6 +86,18 @@ class BookTest {
 
         // 4. Assert that NO violations exist
         assertTrue(violations.isEmpty(), "Expected zero validation errors for a valid DTO, but got: " + violations);
+    }
+
+    @Test
+    void prePersistSetsCreatedAt() {
+        Book book = new Book("The Hobbit", "J.R.R. Tolkien", "Fantasy", new BigDecimal("12.99"));
+
+        assertNull(book.getCreatedAt());
+
+        book.prePersist();
+
+        assertNotNull(book.getCreatedAt());
+        assertFalse(book.getCreatedAt().isAfter(LocalDateTime.now()));
     }
 
 }

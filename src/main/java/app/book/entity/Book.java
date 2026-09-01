@@ -1,6 +1,5 @@
 package app.book.entity;
 
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -15,19 +14,16 @@ import java.time.LocalDateTime;
  * This class is mapped to the "books" table in the database and includes
  * validation constraints for each field.
  * <p>
- * The JSON serialization order is defined by {@link JsonPropertyOrder}.
- * </p>
- * <p>
  * Lombok provides boilerplate shortcuts for Getters,Setters,toString and Constructors via Lombok Annotations
  * </p>
  */
-@Getter @Setter
+@Getter
+@Setter
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "books")
-@JsonPropertyOrder({"id", "title", "author", "genre", "price","created_at"})
 public class Book {
 
     /**
@@ -80,8 +76,15 @@ public class Book {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
-    @Column(nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    public Book(String title, String author, String genre, BigDecimal price) {
+        this.title = title;
+        this.author = author;
+        this.genre = genre;
+        this.price = price;
+    }
 
     @PrePersist
     public void prePersist() {

@@ -117,6 +117,7 @@ src/main/resources/
     migration/
       V1_create_books_table.sql
       V2_create_users_table.sql
+      V3__add_created_at_to_books.sql
 
 src/test/java/
   unit/
@@ -211,7 +212,7 @@ public ResponseEntity<ApiResponse<BookResponseDTO>> addBook(@Valid @RequestBody 
 ### Startup flow
 
 1. Spring Boot starts `app.LibraryApplication`.
-2. Flyway runs `V1_create_books_table.sql` and `V2_create_users_table.sql` in order.
+2. Flyway runs the versioned migrations in order, including `V3__add_created_at_to_books.sql` when it is pending.
 3. `SecurityConfig` allows all requests and disables CSRF.
 4. The API becomes ready at `http://localhost:8080`.
 
@@ -275,18 +276,18 @@ public LibraryStatisticsDTO getLibraryStatistics() {
 | Method | Path | Description | Example Request | Example Response |
 | --- | --- | --- | --- | --- |
 | `GET` | `/app/books/health` | Health check for the API | `GET /app/books/health` | `{"success":true,"message":"Health check","data":{"api":true,"database":true},"timestamp":172...}` |
-| `GET` | `/app/books/all` | Returns a paginated list of books | `GET /app/books/all?page=0&size=12&sort=id,asc` | `{"content":[{"id":1,"title":"1984","author":"George Orwell","genre":"Dystopian","price":19.99}],"pageable":{...}}` |
-| `GET` | `/app/books/{id}` | Fetches a single book by ID | `GET /app/books/1` | `{"id":1,"title":"1984","author":"George Orwell","genre":"Dystopian","price":19.99}` |
-| `POST` | `/app/books/add` | Creates a new book using `BookRequestDTO` validation | `POST /app/books/add` with `{"title":"1984","author":"George Orwell","genre":"Dystopian","price":19.99}` | `{"success":true,"message":"Book Added Successfully","data":{"id":1,"title":"1984","author":"George Orwell","genre":"Dystopian","price":19.99},"timestamp":172...}` |
-| `PATCH` | `/app/books/{id}` | Partially updates a book | `PATCH /app/books/1` with `{"price":15.99}` | `{"success":true,"message":"Book updated successfully","data":{"id":1,"title":"1984","author":"George Orwell","genre":"Dystopian","price":15.99},"timestamp":172...}` |
-| `PUT` | `/app/books/{id}` | Replaces a book completely | `PUT /app/books/1` with full DTO payload | `{"success":true,"message":"Book updated successfully","data":{"id":1,"title":"Animal Farm","author":"George Orwell","genre":"Political Satire","price":12.99},"timestamp":172...}` |
+| `GET` | `/app/books/all` | Returns a paginated list of books | `GET /app/books/all?page=0&size=12&sort=id,asc` | `{"content":[{"id":1,"title":"1984","author":"George Orwell","genre":"Dystopian","price":19.99,"createdAt":"2026-09-01T16:30:00"}],"pageable":{...}}` |
+| `GET` | `/app/books/{id}` | Fetches a single book by ID | `GET /app/books/1` | `{"id":1,"title":"1984","author":"George Orwell","genre":"Dystopian","price":19.99,"createdAt":"2026-09-01T16:30:00"}` |
+| `POST` | `/app/books/add` | Creates a new book using `BookRequestDTO` validation | `POST /app/books/add` with `{"title":"1984","author":"George Orwell","genre":"Dystopian","price":19.99}` | `{"success":true,"message":"Book Added Successfully","data":{"id":1,"title":"1984","author":"George Orwell","genre":"Dystopian","price":19.99,"createdAt":"2026-09-01T16:30:00"},"timestamp":172...}` |
+| `PATCH` | `/app/books/{id}` | Partially updates a book | `PATCH /app/books/1` with `{"price":15.99}` | `{"success":true,"message":"Book updated successfully","data":{"id":1,"title":"1984","author":"George Orwell","genre":"Dystopian","price":15.99,"createdAt":"2026-09-01T16:30:00"},"timestamp":172...}` |
+| `PUT` | `/app/books/{id}` | Replaces a book completely | `PUT /app/books/1` with full DTO payload | `{"success":true,"message":"Book updated successfully","data":{"id":1,"title":"Animal Farm","author":"George Orwell","genre":"Political Satire","price":12.99,"createdAt":"2026-09-01T16:30:00"},"timestamp":172...}` |
 | `DELETE` | `/app/books/{id}` | Deletes a book by ID | `DELETE /app/books/1` | `{"success":true,"message":"Book deleted successfully","timestamp":172...}` |
-| `GET` | `/app/books/search?type=title&value=orwell` | Searches by title, author, genre, or price | `GET /app/books/search?type=author&value=orwell` | `[{"id":1,"title":"1984","author":"George Orwell","genre":"Dystopian","price":19.99}]` |
-| `GET` | `/app/books/budget?maxPrice=20` | Returns books priced at or below the given value | `GET /app/books/budget?maxPrice=20` | `[{"id":1,"title":"1984","author":"George Orwell","genre":"Dystopian","price":19.99}]` |
-| `GET` | `/app/books/sorted?category=title` | Returns books sorted by title, author, genre, price, or id | `GET /app/books/sorted?category=price` | `[{"id":2,"title":"Animal Farm","author":"George Orwell","genre":"Political Satire","price":12.99}]` |
+| `GET` | `/app/books/search?type=title&value=orwell` | Searches by title, author, genre, or price | `GET /app/books/search?type=author&value=orwell` | `[{"id":1,"title":"1984","author":"George Orwell","genre":"Dystopian","price":19.99,"createdAt":"2026-09-01T16:30:00"}]` |
+| `GET` | `/app/books/budget?maxPrice=20` | Returns books priced at or below the given value | `GET /app/books/budget?maxPrice=20` | `[{"id":1,"title":"1984","author":"George Orwell","genre":"Dystopian","price":19.99,"createdAt":"2026-09-01T16:30:00"}]` |
+| `GET` | `/app/books/sorted?category=title` | Returns books sorted by title, author, genre, price, or id | `GET /app/books/sorted?category=price` | `[{"id":2,"title":"Animal Farm","author":"George Orwell","genre":"Political Satire","price":12.99,"createdAt":"2026-09-01T16:30:00"}]` |
 | `GET` | `/app/books/genre` | Returns genre distribution counts | `GET /app/books/genre` | `{"Fiction":3,"Fantasy":2,"Dystopian":1}` |
-| `GET` | `/app/books/price?minPrice=10&maxPrice=25` | Returns books within a price range | `GET /app/books/price?minPrice=10&maxPrice=25` | `[{"id":1,"title":"1984","author":"George Orwell","genre":"Dystopian","price":19.99}]` |
-| `GET` | `/app/books/stats` | Returns total books, total value, and the most expensive book | `GET /app/books/stats` | `{"totalBooks":6,"totalValue":123.45,"mostExpensiveBook":{"id":4,"title":"...","author":"...","genre":"...","price":49.99}}` |
+| `GET` | `/app/books/price?minPrice=10&maxPrice=25` | Returns books within a price range | `GET /app/books/price?minPrice=10&maxPrice=25` | `[{"id":1,"title":"1984","author":"George Orwell","genre":"Dystopian","price":19.99,"createdAt":"2026-09-01T16:30:00"}]` |
+| `GET` | `/app/books/stats` | Returns total books, total value, and the most expensive book | `GET /app/books/stats` | `{"totalBooks":6,"totalValue":123.45,"mostExpensiveBook":{"id":4,"title":"...","author":"...","genre":"...","price":49.99,"createdAt":"2026-09-01T16:30:00"}}` |
 | `GET` | `/app/books/stats/average-price` | Returns the average price of all books | `GET /app/books/stats/average-price` | `{"success":true,"message":"Average Price of Collection: ","data":20.50,"timestamp":172...}` |
 | `GET` | `/app/books/stats/count` | Returns the total number of books | `GET /app/books/stats/count` | `{"success":true,"message":"Book Collection Count","data":6,"timestamp":172...}` |
 
@@ -360,7 +361,9 @@ If you prefer to run the application directly on the host machine, start only Po
 - Flyway manages schema changes via versioned SQL migrations in `src/main/resources/db/migration/`.
   - `V1_create_books_table.sql` creates the `books` table and indexes.
   - `V2_create_users_table.sql` prepares the `users` table for the upcoming user entity.
+  - `V3__add_created_at_to_books.sql` adds the non-null `created_at` timestamp and fills existing rows with the current database time.
 - The app uses JPA and Hibernate for entity persistence with `ddl-auto=validate`.
+- `Book.createdAt` maps to `books.created_at`, is set automatically on insert, and is not accepted from create, patch, or replace requests.
 - Updates rely on Hibernate dirty checking inside transactional service methods.
 - `BookRequestDTO` is used for request validation, while `BookResponseDTO` and `LibraryStatisticsDTO` are used for response shaping.
 - `BookMapper` centralizes conversion between entities and DTOs.
@@ -370,6 +373,7 @@ If you prefer to run the application directly on the host machine, start only Po
 The project uses JUnit 5, Mockito, AssertJ, Jakarta Validator, and JaCoCo. Its current unit suites cover entity and DTO validation, service-layer behavior, and global REST exception translation.
 
 - `BookTest` verifies book construction and request DTO constraints.
+- `BookMapperTest` verifies that `createdAt` is included in response DTOs.
 - `BookServiceTest` verifies service rules, repository interaction, search, sorting, pricing, aggregates, and dirty-checking expectations.
 - `GlobalExceptionHandlerTest` directly invokes each of the 12 exception handlers and verifies HTTP status, public error fields, validation-message aggregation, and protection against leaking parser, database, constraint, or fallback exception details.
 

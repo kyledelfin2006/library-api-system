@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
  * Represents a book entity in the bookstore application.
@@ -26,13 +27,13 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Entity
 @Table(name = "books")
-@JsonPropertyOrder({"id", "title", "author", "genre", "price"})
+@JsonPropertyOrder({"id", "title", "author", "genre", "price","created_at"})
 public class Book {
 
     /**
      * The unique identifier of the book.
      * Generated automatically using the database identity column
-     * (SERIAL / BIGSERIAL in PostgreSQL).
+     * (SERIAL / BIG SERIAL in PostgreSQL).
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // Matches Serial/BIGSERIAL in PostgreSQL
@@ -79,11 +80,11 @@ public class Book {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
-    public Book(String title, String author, String genre, BigDecimal price) {
-        this.title = title;
-        this.author = author;
-        this.genre = genre;
-        this.price = price;
-    }
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();
+    }
 }

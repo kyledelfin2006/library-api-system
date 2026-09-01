@@ -64,11 +64,15 @@ library-api-system/
     |           |-- V1_create_books_table.sql
     |           |-- V2_create_users_table.sql
     |           `-- V3__add_created_at_to_books.sql
-    `-- test/java/unit/
-        |-- BookMapperTest.java
-        |-- BookServiceTest.java
-        |-- BookTest.java
-        `-- GlobalExceptionHandlerTest.java
+    `-- test/
+        |-- java/unit/
+        |   |-- BookMapperTest.java
+        |   |-- BookServiceTest.java
+        |   |-- BookTest.java
+        |   `-- GlobalExceptionHandlerTest.java
+        `-- resources/
+            |-- junit-platform.properties
+            `-- logback-test.xml
 ```
 
 Keep production code below the root `app` package. `LibraryApplication` sits at that root so Spring's default component scan discovers controllers, services, repositories, mappers, advice, and configuration beneath it.
@@ -370,9 +374,20 @@ Central advice maps Java/application exceptions to stable HTTP errors, keeping e
 
 Current coverage consists of:
 
-- `BookServiceTest`: Mockito-based service unit tests for CRUD rules, dirty-checking expectations, search, sorting, pricing, and aggregates.
-- `BookTest`: entity construction and direct Jakarta Validator checks for request DTO constraints.
-- `GlobalExceptionHandlerTest`: direct unit tests for all 12 exception handlers, including status/error contracts, validation-message aggregation, and non-leakage of internal parser, database, constraint, and fallback exception details.
+- `BookServiceTest`: 41 Mockito-based service unit tests for CRUD rules, dirty-checking expectations, search, sorting, pricing, and aggregates.
+- `BookTest`: four entity-construction, lifecycle, and direct Jakarta Validator tests for request DTO constraints.
+- `BookMapperTest`: four focused tests for entity-to-DTO mapping, null inputs, and list mapping.
+- `GlobalExceptionHandlerTest`: 12 direct unit tests for every exception handler, including status/error contracts, validation-message aggregation, and non-leakage of internal parser, database, constraint, and fallback exception details.
+
+The suite contains 61 tests. Its execution setup is deliberately small and optimized:
+
+- `src/test/resources/junit-platform.properties` enables concurrent execution between test classes but keeps methods within each class on the same thread.
+- `BookServiceTest` uses `@TestInstance(PER_CLASS)` so its repository mock and `BookService` are constructed once. `@BeforeEach` resets the repository mock and rebuilds mutable book fixtures, preserving test isolation. The stateless `BookMapper` is real rather than mocked.
+- `BookTest` shares one thread-safe Jakarta `Validator` and closes its `ValidatorFactory` in `@AfterAll` instead of rebuilding a factory per validation test.
+- `GlobalExceptionHandlerTest` shares its stateless handler and constructs real Spring exceptions where practical, avoiding extra mock creation.
+- `src/test/resources/logback-test.xml` disables logs only in tests. Expected exception-handler tests must not flood test output with stack traces.
+
+These choices fixed a slow feedback loop without deleting, merging, or weakening tests. Reference measurements from the Java 25 development machine on September 1, 2026 were 5.098 seconds for a warm `mvn test`, 10.579 seconds for `mvn clean test`, and 12.596 seconds for `mvn clean verify`. Treat those figures as evidence from one environment, not a cross-machine performance requirement. First-time Maven dependency downloads may still dominate an initial run.
 
 The exception-handler tests verify direct Java method behavior without loading Spring MVC. The tests do not currently prove controller routing, JSON serialization, security behavior, JPA query correctness, Flyway migration success, PostgreSQL compatibility, or transaction/dirty-checking behavior in a real persistence context. Mockito tests that verify no `save` call document intent but do not substitute for a JPA integration test.
 

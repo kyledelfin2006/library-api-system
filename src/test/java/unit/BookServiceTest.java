@@ -9,10 +9,7 @@ import app.book.repository.BookRepository;
 import jakarta.validation.constraints.Positive;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.data.domain.Sort;
 
 import java.math.BigDecimal;
@@ -27,28 +24,20 @@ import static org.mockito.Mockito.*;
 /**
  * Isolated unit tests for {@link BookService} business rules and repository orchestration.
  *
- * <p>{@link MockitoExtension} creates the mocks before each test and injects them into the
- * service under test. The suite never starts Spring, Hibernate, or a database. Consequently,
+ * <p>The repository mock and service are created once for this class, while the mock is reset
+ * before each test to preserve isolation without repeating Mockito initialization. The suite
+ * never starts Spring, Hibernate, or a database. Consequently,
  * assertions about dirty checking verify that the service does not call {@code save}; actual
  * persistence-context flushing remains an integration-test concern.</p>
  */
-@ExtendWith(MockitoExtension.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BookServiceTest {
 
     /** Mocked persistence boundary used to define query results and verify repository calls. */
-    @Mock
-    private BookRepository repository;
+    private final BookRepository repository = mock(BookRepository.class);
 
-    /**
-     * Mocked DTO/entity conversion boundary. Individual tests opt into real mapper behavior only
-     * when the mapping itself is needed to exercise the service path.
-     */
-    @Mock
-    private BookMapper mapper;
-
-    /** Service under test, constructed by Mockito with {@link #repository} and {@link #mapper}. */
-    @InjectMocks
-    private BookService bookService;
+    /** Service under test, using the real stateless mapper and mocked persistence boundary. */
+    private final BookService bookService = new BookService(repository, new BookMapper());
 
     /** Canonical persisted entity fixture reset before every test. */
     private Book sampleBook;
@@ -71,9 +60,10 @@ class BookServiceTest {
     /** Expected positive monetary value shared by the canonical fixtures. */
     private final @Positive(message = "Price must be greater than 0") BigDecimal PRICE = new BigDecimal("45.0");
 
-    /** Rebuilds mutable fixtures before each test to prevent state leakage between scenarios. */
+    /** Resets mock behavior and rebuilds mutable fixtures before each isolated scenario. */
     @BeforeEach
     void setUp() {
+        reset(repository);
         sampleBook = new Book(TITLE, AUTHOR, GENRE, PRICE);
         sampleBook.setId(BOOK_ID);
 
@@ -84,7 +74,6 @@ class BookServiceTest {
     /** Verifies that a valid request is mapped, saved once, and returned as a populated entity. */
     @Test
     void addBook_shouldSaveAndReturnBook() {
-        when(mapper.toEntity(any(BookRequestDTO.class))).thenCallRealMethod();
         when(repository.save(any(Book.class))).thenReturn(sampleBook);
 
         Book result = bookService.addBook(sampleBookRequestDTO);
@@ -246,7 +235,6 @@ class BookServiceTest {
     @Test
     void replaceBook_shouldReplaceAllFields() {
         when(repository.findById(BOOK_ID)).thenReturn(Optional.of(sampleBook));
-        doCallRealMethod().when(mapper).updateBookFromDto(any(BookRequestDTO.class), any(Book.class));
         BookRequestDTO newData = new BookRequestDTO("New Title", "New Author", "New Genre", new BigDecimal("99.99"));
 
         Book result = bookService.replaceBook(BOOK_ID, newData);

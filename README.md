@@ -364,9 +364,8 @@ If you prefer to run the application directly on the host machine, start only Po
 
 - PostgreSQL 18 stores all book records.
 - Flyway manages schema changes via versioned SQL migrations in `src/main/resources/db/migration/`.
-  - `V1_create_books_table.sql` creates the `books` table and indexes.
-  - `V2_create_users_table.sql` prepares the `users` table for the upcoming user entity.
-  - `V3__add_created_at_to_books.sql` adds the non-null `created_at` timestamp and fills existing rows with the current database time.
+  - `V1_create_books_table.sql` creates the `books` table with the `created_at` column and indexes.
+  - `V2_create_users_table.sql` currently has no SQL content (placeholder for future users table).
 - The app uses JPA and Hibernate for entity persistence with `ddl-auto=validate`.
 - `Book.createdAt` maps to `books.created_at` and is set automatically on insert. It is intentionally omitted from `BookResponseDTO`, so clients do not receive it and cannot provide it through create, patch, or replace requests.
 - Updates rely on Hibernate dirty checking inside transactional service methods.

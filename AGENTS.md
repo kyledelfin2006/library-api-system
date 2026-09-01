@@ -289,7 +289,7 @@ Important persistence settings:
 
 ## Database Migration Rules
 
-`V1_create_books_table.sql` creates `books` and its indexes. `V2_create_users_table.sql` currently has no SQL content. `V3__add_created_at_to_books.sql` adds the non-null `created_at` column and fills existing rows with the current database time. Treat an applied migration as immutable; add the next version instead of editing it.
+`V1_create_books_table.sql` creates `books` with the `created_at` column and its indexes. `V2_create_users_table.sql` currently has no SQL content. The V3 migration has been removed.
 
 For every schema change:
 

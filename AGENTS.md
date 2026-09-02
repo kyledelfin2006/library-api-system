@@ -124,6 +124,21 @@ Write methods are transactional:
 
 PATCH and PUT intentionally omit `repository.save(existingBook)`. Hibernate dirty checking flushes changes to managed entities when the transaction commits. Preserve this behavior unless the persistence model changes. Calling these methods outside Spring's managed proxy, or removing `@Transactional`, changes that guarantee.
 
+#### PUT vs PATCH: partial-update design
+
+The controller layer distinguishes full replacement (PUT) from partial updates (PATCH) through validation strategy:
+
+- **PUT (`replaceBook`)**: The controller annotates the request body with `@Valid @RequestBody BookRequestDTO`. This activates all DTO annotations (`@NotBlank`, `@Size`, `@Positive`, `@NotNull`) on every invocation, enforcing a complete, valid payload. The service method (`replaceBook`) additionally performs manual checks as defense-in-depth, protecting callers that bypass the controller's `@Valid` (e.g., scheduled jobs, internal consumers). The mapper's `updateBookFromDto` overwrites every mutable field onto the fetched managed entity.
+
+- **PATCH (`patchBook`)**: The controller annotates the request body with `@RequestBody BookRequestDTO` (no `@Valid`). This is deliberate: a PATCH request represents a partial update where omitted fields arrive as `null`, and applying `@NotBlank` or `@Positive` to a `null` PATCH field would reject legitimate partial updates. Instead, the service applies field-level conditional logic via a `hasText()` helper that skips `null` and blank strings entirely, and only validates price against zero or negativity when a non-null price is supplied.
+
+This design solves a problem solved by many implementations incorrectly:
+
+- **Applying PUT rules to PATCH**: If `@Valid` were on PATCH, sending `{"price": 15.00}` would fail because `title`, `author`, and `genre` are `null` and violate `@NotBlank`. This breaks partial updates entirely.
+- **Applying PATCH rules to PUT**: If PUT used the same `hasText()` skip logic, a client could PUT `{"title": null, "author": "Orwell", ...}` and the `null` title would be silently ignored, leaving the old title in place — violating the "complete replacement" contract of PUT.
+
+The `hasText()` method (`s != null && !s.trim().isEmpty()`) also correctly handles the edge case where a client sends `"title": ""` or `"title": "   "` — these are treated as "no update" rather than as an attempt to blank the field. This preserves existing data rather than corrupting it with empty strings.
+
 Read methods handle pagination, field-restricted sorting, searches, price ranges, genre distribution, and aggregate statistics. Keep input allowlists in the service; never pass arbitrary client field names directly to JPA sorting or query construction.
 
 ### Repository layer

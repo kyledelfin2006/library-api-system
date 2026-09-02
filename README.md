@@ -234,7 +234,34 @@ public ResponseEntity<ApiResponse<BookResponseDTO>> addBook(@Valid @RequestBody 
 }
 ```
 
-### Partial updates with dirty checking
+### Partial Updates: PUT vs PATCH Design
+
+The API deliberately distinguishes **full replacement (PUT)** from **partial updates (PATCH)** through a validation strategy that prevents the two most common mistakes in REST partial-update implementations.
+
+#### Architectural Decision
+
+`BookRequestDTO` is reused for both PUT and PATCH. The distinction between "replace everything" and "change only what's sent" is expressed through where validation is applied:
+
+| Dimension | `PUT /app/books/{id}` (replace) | `PATCH /app/books/{id}` (partial) |
+|---|---|---|
+| Controller annotation | `@Valid @RequestBody BookRequestDTO` | `@RequestBody BookRequestDTO` (no `@Valid`) |
+| Omitted fields | Rejected — all `@NotBlank`/`@NotNull` constraints fire | Skipped — `null` means "leave unchanged" |
+| Empty strings | Rejected — `@NotBlank` fails on `""` | Skipped — `hasText()` treats `""` as absent |
+| Price `null` | Rejected — `@NotNull` fails | Skipped — only validated when non-null |
+| Price ≤ 0 | Rejected — `@Valid` + `@Positive` | Rejected — manual `compareTo` check in service |
+| Validation layer | DTO annotations (primary) + service guards (defense-in-depth) | Service-level field-by-field conditional logic |
+
+#### Problems Solved
+
+1. **Applying PUT rules to PATCH breaks partial updates entirely.** If `@Valid` were on the PATCH endpoint, sending `{"price": 15.99}` would fail because `title`, `author`, and `genre` arrive as `null` and violate `@NotBlank`. The request is semantically correct for a partial update, but annotation validation rejects it. The solution is omitting `@Valid` on PATCH so null fields pass through unvalidated, then validating only the fields that are actually present.
+
+2. **Applying PATCH rules to PUT allows silent data corruption.** If PUT used the same `hasText()` skip pattern (`if (hasText(dto.getTitle())) { existing.setTitle(dto.getTitle()); }`), a client could PUT `{"title": null, "author": "Orwell", "genre": "Drama", "price": 10.00}` and the `null` title would be silently ignored, leaving the old title in place. This violates the "complete replacement" contract of PUT. The solution is applying `@Valid` on PUT so every field is required and validated, plus redundant service-level checks as defense-in-depth for non-HTTP callers.
+
+3. **Empty strings vs. null are both treated as "no update" on PATCH.** The `hasText()` helper (`s != null && !s.trim().isEmpty()`) ensures `"title": ""` and `"title": "   "` are treated identically to `"title": null` during a partial update. This prevents clients from accidentally blanking a field with an empty string, which would otherwise overwrite valid persisted data with an empty value. On PUT, both cases are rejected by `@NotBlank`.
+
+#### Dirty-Checking Optimization
+
+Neither `patchBook` nor `replaceBook` calls `repository.save()` on the fetched entity. Both are `@Transactional`, so the persistence context keeps the entity managed, and Hibernate's dirty checker automatically detects field changes and flushes them at commit. This avoids an unnecessary `UPDATE` round-trip and prevents accidental overwrites of the `createdAt` timestamp.
 
 ```java
 @Transactional
@@ -420,6 +447,7 @@ These are isolated unit tests. Controller routing and serialization, repository 
 - **Memory Leaking**: Solved by using `@Modifying(clearAutomatically = true)` on the delete query to flush and clear the persistence context, preventing stale entity accumulation. Pagination on `/app/books/all` also prevents loading the entire table into memory.
 - **Read And Write Concurrency Error**: Solved by isolating write operations inside `@Transactional` boundaries. Dirty checking and automatic flushing ensure that concurrent reads do not interfere with in-progress writes, and transactions are rolled back on failure to preserve data integrity.
 - **Using `@Transactional`**: All mutation endpoints (`addBook`, `patchBook`, `replaceBook`, `deleteBookById`) are wrapped in `@Transactional` to guarantee atomicity, enable Hibernate dirty checking for automatic updates, and provide consistent exception handling across the service layer.
+- **PUT vs PATCH Validation Strategy**: Solved the classic REST conflict where applying `@Valid` to PATCH rejects legitimate partial updates (omitted fields arrive as `null` and violate `@NotBlank`), while omitting it from PUT allows silent data corruption (null fields are skipped instead of replaced). The solution uses `@Valid` on PUT for full-replacement enforcement, omits `@Valid` on PATCH with field-level conditional `hasText()` guards in the service, and treats both `null` and empty/blank strings as "no update" during partial updates to prevent data corruption.
 
 ## Upcoming Improvements
 

@@ -37,9 +37,17 @@ Libro is a Spring Boot REST API for managing books with CRUD operations, search,
 * [Troubleshooting](https://github.com/kyledelfin2006/library-api-system#troubleshooting)
 * [Data Management](https://github.com/kyledelfin2006/library-api-system#data-management)
 * [Testing](https://github.com/kyledelfin2006/library-api-system#testing)
+* [Documentation](#documentation)
 * [Problems I Solved](https://github.com/kyledelfin2006/library-api-system#problems-i-solved)
 * [Upcoming Improvements](https://github.com/kyledelfin2006/library-api-system#upcoming-improvements)
 * [License](https://github.com/kyledelfin2006/library-api-system#license)
+
+## Documentation
+
+The README is the central entry point for project documentation. Supporting reports belong in `docs/`, while files that rely on repository-root discovery remain at the root.
+
+- [Gap Report](docs/gap-report.md) tracks active architectural and implementation gaps, their impact, priorities, and resolved items.
+- [Agent and Contributor Guide](AGENTS.md) documents the repository architecture, layer contracts, coding rules, testing expectations, and definition of done. It remains at the repository root so coding agents can discover it automatically.
 
 ## Architecture Overview
 
@@ -83,6 +91,11 @@ flowchart TD
 ## File Structure
 
 ```text
+AGENTS.md
+README.md
+docs/
+  gap-report.md
+
 src/main/java/app/
   LibraryApplication.java
   auth/

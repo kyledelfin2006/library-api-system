@@ -1,7 +1,12 @@
 # Gap Report — Libro: Library API System
 
-**Generated:** Code-assessment review
-**Status:** Active — gaps are ordered by severity and architectural layer
+| Report attribute | Value |
+|---|---|
+| Scope | Repository-level code and architecture assessment |
+| Status | Active; gaps are grouped by architectural layer |
+| Last updated | September 3, 2026 |
+| Register policy | Detailed sections contain active gaps only; resolved IDs move to the resolution register and are never reused |
+| Counting basis | Severity totals include active gaps only; resolved gaps remain traceable in the portfolio summary |
 
 ---
 
@@ -10,7 +15,6 @@
 | # | Gap | Location | Impact | Why it matters |
 |---|-----|----------|--------|-----------------|
 | 1.1 | **Entity-level Jakarta annotations never execute** | `app.book.entity.Book` (lines 46–75) | `@NotBlank`, `@Positive` on entity fields are compile-time documentation only; they never fire at runtime | Nothing in the service layer or mapper calls `validator.validate(entity)`. The active guards are DTO `@Valid` (POST/PUT) and manual service checks (PATCH/PUT). If any caller bypasses the controller (e.g., scheduled job, internal consumer), entity constraints are inert. |
-| 1.2 | **[RESOLVED] `buildValidationErrorResponse` helper documented but absent** | `AGENTS.md` and `app.global.exceptions.GlobalExceptionHandler` | The inaccurate helper contract was removed from `AGENTS.md` on September 3, 2026; the documentation now matches the implementation | Retained as a historical gap. No API behavior changed: `handleIllegalArgument` and `handleValidationFailures` continue constructing their validation responses directly. |
 | 1.3 | **PATCH validation errors route through `IllegalArgumentException` handler** | `BookService.patchBook` (line 144) → `GlobalExceptionHandler.handleIllegalArgument` (line 40) | `replaceBook` and `patchBook` throw `IllegalArgumentException` which maps to the same `error: "Validation failed"` field as `@Valid` violations, but through a different handler code path | This works by coincidence (both handlers manually set `error: "Validation failed"`). If either handler's message diverges in the future, PATCH and POST/PUT validation errors would have inconsistent response shapes for the same logical error. |
 | 1.4 | **Input trimming is inconsistent across endpoints** | `BookService.patchBook` (lines 133–141, `.trim()` applied) vs. `BookService.addBook`/`replaceBook` (no `.trim()`) | PATCH trims string fields before setting them on the entity; POST and PUT do not trim | A client sending `"title": "  Dune  "` on POST/PUT stores the padded value, while PATCH strips it. This behavioral inconsistency is undocumented and could confuse API consumers. |
 | 1.5 | **No `@Version`/optimistic locking on entity** | `app.book.entity.Book` | Concurrent updates to the same book can silently overwrite each other (lost update) | Without `@Version`, two simultaneous PUT/PATCH requests on the same `id` will not be detected. The last commit wins. For a library API this may be acceptable, but it's a gap for data integrity under concurrent access. |
@@ -115,22 +119,26 @@
 
 ### Resolved gaps
 
-- **Gap 1.2 — `buildValidationErrorResponse` helper documented but absent (resolved September 3, 2026):** Removed the inaccurate helper contract from `AGENTS.md`. The contributor guide now matches the current `GlobalExceptionHandler` implementation, which constructs validation responses directly in `handleIllegalArgument` and `handleValidationFailures`. This documentation-only resolution does not change the API response contract.
+| Gap | Resolution | Completed | Result |
+|---|---|---|---|
+| 1.2 | Removed the inaccurate `buildValidationErrorResponse` helper contract from `AGENTS.md` | September 3, 2026 | Documentation now matches the current handler implementation; the API contract is unchanged |
 
-The summary below counts active gaps only; resolved entries retained in the detailed tables are excluded.
+### Portfolio summary
 
-| Layer | Count | Critical | High | Medium | Low |
-|-------|-------|----------|------|--------|-----|
-| Validation & Error Handling | 4 | 0 | 1 | 2 | 1 |
-| Security | 4 | 0 | 1 | 2 | 1 |
-| API Design & Consistency | 8 | 0 | 2 | 4 | 2 |
-| Testing & Coverage | 5 | 0 | 1 | 3 | 1 |
-| Database & Migrations | 5 | 0 | 2 | 2 | 1 |
-| Infrastructure & Deployment | 5 | 0 | 1 | 2 | 2 |
-| Observability & Monitoring | 3 | 0 | 1 | 2 | 0 |
-| Code Quality & Maintainability | 6 | 0 | 0 | 4 | 2 |
-| Concurrency & Data Integrity | 2 | 0 | 0 | 1 | 1 |
-| **Total** | **42** | **0** | **8** | **23** | **11** |
+| Layer | Active | Resolved | Total identified | Critical | High | Medium | Low |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Validation & Error Handling | 4 | 1 | 5 | 0 | 1 | 2 | 1 |
+| Security | 4 | 0 | 4 | 0 | 1 | 2 | 1 |
+| API Design & Consistency | 8 | 0 | 8 | 0 | 2 | 4 | 2 |
+| Testing & Coverage | 5 | 0 | 5 | 0 | 1 | 3 | 1 |
+| Database & Migrations | 5 | 0 | 5 | 0 | 2 | 2 | 1 |
+| Infrastructure & Deployment | 5 | 0 | 5 | 0 | 1 | 2 | 2 |
+| Observability & Monitoring | 3 | 0 | 3 | 0 | 1 | 2 | 0 |
+| Code Quality & Maintainability | 6 | 0 | 6 | 0 | 0 | 4 | 2 |
+| Concurrency & Data Integrity | 2 | 0 | 2 | 0 | 0 | 1 | 1 |
+| **Total** | **42** | **1** | **43** | **0** | **8** | **23** | **11** |
+
+Severity columns count active gaps only.
 
 **No critical vulnerabilities** were found. The highest-priority gaps are:
 1. **Testing coverage** — no integration, MVC, or JPA tests exist (Gap 4.1–4.2)

@@ -31,6 +31,13 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 @Slf4j
 public class GlobalExceptionHandler {
 
+    // Helper: centralizes construction of validation error responses so every validation
+    // handler — whether triggered by @Valid (MethodArgumentNotValidException) or by manual
+    // service-layer checks (IllegalArgumentException) — shares a single, tested code path.
+    private ErrorResponse buildValidationErrorResponse(String message) {
+        return new ErrorResponse("Validation failed", message, 400);
+    }
+
     /**
      * Handles {@link IllegalArgumentException} for invalid input arguments.
      *
@@ -40,9 +47,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
         log.warn("Validation failed: {}", ex.getMessage());
-        ErrorResponse error = new ErrorResponse("Validation failed", ex.getMessage(), 400);
-        return ResponseEntity.badRequest().body(error);
+        return ResponseEntity.badRequest().body(buildValidationErrorResponse(ex.getMessage()));
     }
+
 
     /**
      * Handles {@link NumberFormatException} for invalid numeric arguments.
@@ -84,9 +91,7 @@ public class GlobalExceptionHandler {
                 .map(DefaultMessageSourceResolvable::getDefaultMessage)
                 .reduce((msg1, msg2) -> msg1 + ", " + msg2)
                 .orElse("Validation failed");
-
-        ErrorResponse error = new ErrorResponse("Validation failed", allErrors, 400);
-        return ResponseEntity.badRequest().body(error);
+        return ResponseEntity.badRequest().body(buildValidationErrorResponse(allErrors));
     }
 
     /**

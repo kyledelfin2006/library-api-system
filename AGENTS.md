@@ -204,8 +204,6 @@ Successful mutation and selected statistic endpoints use generic `ApiResponse<T>
 
 Handler order matters conceptually. `DataIntegrityViolationException` is a subtype of `DataAccessException`; preserve the specific conflict behavior when refactoring exception handling. Never return stack traces, SQL, credentials, or database internals to clients.
 
-The private helper `buildValidationErrorResponse(String message)` in `GlobalExceptionHandler` is the **sole construction point** for validation `ErrorResponse` objects (`error: "Validation failed"`, HTTP 400). Both `handleIllegalArgument` (PATCH service-layer checks) and `handleValidationFailures` (`@Valid` bean validation) delegate to it. Do not inline `new ErrorResponse("Validation failed", …, 400)` anywhere else; extend the helper or add an overload instead so the contract stays testable and centrally owned.
-
 ### Security
 
 `SecurityConfig` installs Spring Security but currently permits every request and disables CSRF. This is an explicit development-stage posture, not production authentication. Do not describe the API as protected.

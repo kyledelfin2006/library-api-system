@@ -11,3 +11,4 @@ CREATE INDEX idx_books_title ON books(title);
 CREATE INDEX idx_books_author ON books(author);
 CREATE INDEX idx_books_genre ON books(genre);
 CREATE INDEX idx_books_price ON books(price);
+CREATE INDEX idx_created_at ON books(created_at)

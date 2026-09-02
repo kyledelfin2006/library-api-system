@@ -52,6 +52,25 @@ public class GlobalExceptionHandler {
 
 
     /**
+     * Handles validation failures for {@code @Valid} annotated request bodies.
+     * <p>
+     * Aggregates all constraint violation messages into a single comma-separated string.
+     * </p>
+     *
+     * @param ex the exception containing the binding results
+     * @return HTTP 400 Bad Request with the aggregated validation errors
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationFailures(MethodArgumentNotValidException ex) {
+        String allErrors = ex.getBindingResult().getAllErrors().stream()
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .reduce((msg1, msg2) -> msg1 + ", " + msg2)
+                .orElse("Validation failed");
+        return ResponseEntity.badRequest().body(buildValidationErrorResponse(allErrors));
+    }
+
+
+    /**
      * Handles {@link NumberFormatException} for invalid numeric arguments.
      *
      * @param ex the exception containing the invalid argument details
@@ -74,24 +93,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleJsonParseError(HttpMessageNotReadableException ex) {
         ErrorResponse error = new ErrorResponse("Processing Error", "Invalid JSON format in request body", 400);
         return ResponseEntity.badRequest().body(error);
-    }
-
-    /**
-     * Handles validation failures for {@code @Valid} annotated request bodies.
-     * <p>
-     * Aggregates all constraint violation messages into a single comma-separated string.
-     * </p>
-     *
-     * @param ex the exception containing the binding results
-     * @return HTTP 400 Bad Request with the aggregated validation errors
-     */
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationFailures(MethodArgumentNotValidException ex) {
-        String allErrors = ex.getBindingResult().getAllErrors().stream()
-                .map(DefaultMessageSourceResolvable::getDefaultMessage)
-                .reduce((msg1, msg2) -> msg1 + ", " + msg2)
-                .orElse("Validation failed");
-        return ResponseEntity.badRequest().body(buildValidationErrorResponse(allErrors));
     }
 
     /**

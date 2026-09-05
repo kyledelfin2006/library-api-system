@@ -122,6 +122,11 @@ Write methods are transactional:
 - `replaceBook` validates a complete replacement, then maps all fields onto a managed entity.
 - `deleteBookById` executes a modifying JPQL query and checks the affected row count.
 
+Before create, PATCH, and PUT reach the persistence boundary, the service explicitly validates
+the resulting `Book` with Jakarta `Validator`. This makes entity constraints effective for
+internal service callers as well as HTTP callers. Entity constraint violations are translated to
+the standard HTTP 400 validation response by `GlobalExceptionHandler`.
+
 PATCH and PUT intentionally omit `repository.save(existingBook)`. Hibernate dirty checking flushes changes to managed entities when the transaction commits. Preserve this behavior unless the persistence model changes. Calling these methods outside Spring's managed proxy, or removing `@Transactional`, changes that guarantee.
 
 #### PUT vs PATCH: partial-update design
@@ -389,12 +394,12 @@ Central advice maps Java/application exceptions to stable HTTP errors, keeping e
 
 Current coverage consists of:
 
-- `BookServiceTest`: 41 Mockito-based service unit tests for CRUD rules, dirty-checking expectations, search, sorting, pricing, and aggregates.
-- `BookTest`: four entity-construction, lifecycle, and direct Jakarta Validator tests for request DTO constraints.
+- `BookServiceTest`: 42 Mockito-based service unit tests for CRUD rules, entity-validation enforcement, dirty-checking expectations, search, sorting, pricing, and aggregates.
+- `BookTest`: five entity-construction, lifecycle, and direct Jakarta Validator tests for request DTO and entity constraints.
 - `BookMapperTest`: four focused tests for entity-to-DTO mapping, null inputs, and list mapping.
-- `GlobalExceptionHandlerTest`: 12 direct unit tests for every exception handler, including status/error contracts, validation-message aggregation, and non-leakage of internal parser, database, constraint, and fallback exception details.
+- `GlobalExceptionHandlerTest`: 13 direct unit tests for every exception handler, including status/error contracts, DTO/entity validation-message aggregation, and non-leakage of internal parser, database, constraint, and fallback exception details.
 
-The suite contains 61 tests. Its execution setup is deliberately small and optimized:
+The suite contains 64 tests. Its execution setup is deliberately small and optimized:
 
 - `src/test/resources/junit-platform.properties` enables concurrent execution between test classes but keeps methods within each class on the same thread.
 - `BookServiceTest` uses `@TestInstance(PER_CLASS)` so its repository mock and `BookService` are constructed once. `@BeforeEach` resets the repository mock and rebuilds mutable book fixtures, preserving test isolation. The stateless `BookMapper` is real rather than mocked.

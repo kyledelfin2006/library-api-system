@@ -2,6 +2,7 @@ package app.global.exceptions;
 
 import app.book.exceptions.BookNotFoundException;
 import app.global.responses.ErrorResponse;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.dao.DataAccessException;
@@ -65,6 +66,17 @@ public class GlobalExceptionHandler {
         String allErrors = ex.getBindingResult().getAllErrors().stream()
                 .map(DefaultMessageSourceResolvable::getDefaultMessage)
                 .reduce((msg1, msg2) -> msg1 + ", " + msg2)
+                .orElse("Validation failed");
+        return ResponseEntity.badRequest().body(buildValidationErrorResponse(allErrors));
+    }
+
+    /** Handles validation failures raised while enforcing entity constraints in the service. */
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException ex) {
+        String allErrors = ex.getConstraintViolations().stream()
+                .map(violation -> violation.getMessage())
+                .sorted()
+                .reduce((message1, message2) -> message1 + ", " + message2)
                 .orElse("Validation failed");
         return ResponseEntity.badRequest().body(buildValidationErrorResponse(allErrors));
     }

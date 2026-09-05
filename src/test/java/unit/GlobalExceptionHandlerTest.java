@@ -4,6 +4,8 @@ import app.book.entity.Book;
 import app.book.exceptions.BookNotFoundException;
 import app.global.exceptions.GlobalExceptionHandler;
 import app.global.responses.ErrorResponse;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.MethodParameter;
 import org.springframework.dao.DataAccessException;
@@ -23,6 +25,7 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -96,6 +99,19 @@ class GlobalExceptionHandlerTest {
 
         assertError(response, HttpStatus.BAD_REQUEST, "Validation failed",
                 "Title cannot be empty, Price must be greater than 0");
+    }
+
+    /** Verifies service-layer entity violations use the standard validation response contract. */
+    @Test
+    void shouldReturnBadRequestWhenEntityValidationFails() {
+        @SuppressWarnings("unchecked")
+        ConstraintViolation<Book> violation = org.mockito.Mockito.mock(ConstraintViolation.class);
+        org.mockito.Mockito.when(violation.getMessage()).thenReturn("Title cannot be blank");
+        ConstraintViolationException exception = new ConstraintViolationException(Set.of(violation));
+
+        ResponseEntity<ErrorResponse> response = handler.handleConstraintViolation(exception);
+
+        assertError(response, HttpStatus.BAD_REQUEST, "Validation failed", "Title cannot be blank");
     }
 
     /**

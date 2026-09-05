@@ -8,6 +8,9 @@ import app.book.dto.BookRequestDTO;
 import app.book.mapper.BookMapper;
 import app.book.repository.BookRepository;
 import jakarta.transaction.Transactional;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validator;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -44,6 +47,7 @@ public class BookService {
      */
     private final BookRepository repository;
     private final BookMapper mapper;
+    private final Validator validator;
 
 
     /**
@@ -70,6 +74,7 @@ public class BookService {
 
         // Use the mapper to convert DTO → Entity (keeps construction centralized)
         Book newBook = mapper.toEntity(input);
+        validateEntity(newBook);
         repository.save(newBook);
 
         log.info("Successfully added book '{}' to catalogue with ID: {}", newBook.getTitle(), newBook.getId());
@@ -146,6 +151,7 @@ public class BookService {
             existingBook.setPrice(updates.getPrice());
         }
 
+        validateEntity(existingBook);
         return existingBook; // no repository.save() needed for Transactional methods.
     }
 
@@ -191,9 +197,25 @@ public class BookService {
 
         // 3. Update entire entity using BookMapper
         mapper.updateBookFromDto(updates, existingBook);
+        validateEntity(existingBook);
 
         // 4. Persist and return managed book entity through dirty checking
         return existingBook;
+    }
+
+    /**
+     * Enforces the validation constraints declared on {@link Book} before a write reaches the
+     * persistence boundary. This protects service callers that do not pass through controller
+     * DTO validation and makes entity constraints independent of provider lifecycle callbacks.
+     *
+     * @param book entity about to be inserted or updated
+     * @throws ConstraintViolationException if any entity constraint is violated
+     */
+    private void validateEntity(Book book) {
+        Set<ConstraintViolation<Book>> violations = validator.validate(book);
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(violations);
+        }
     }
 
     /**

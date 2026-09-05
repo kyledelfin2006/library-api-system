@@ -7,6 +7,10 @@ import app.book.entity.Book;
 import app.book.dto.BookRequestDTO;
 import app.book.repository.BookRepository;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validation;
+import jakarta.validation.ValidatorFactory;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -36,8 +40,16 @@ class BookServiceTest {
     /** Mocked persistence boundary used to define query results and verify repository calls. */
     private final BookRepository repository = mock(BookRepository.class);
 
+    private final ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
+
     /** Service under test, using the real stateless mapper and mocked persistence boundary. */
-    private final BookService bookService = new BookService(repository, new BookMapper());
+    private final BookService bookService = new BookService(
+            repository, new BookMapper(), validatorFactory.getValidator());
+
+    @AfterAll
+    void closeValidatorFactory() {
+        validatorFactory.close();
+    }
 
     /** Canonical persisted entity fixture reset before every test. */
     private Book sampleBook;
@@ -84,6 +96,16 @@ class BookServiceTest {
         assertEquals(GENRE, result.getGenre());
         assertEquals(0, PRICE.compareTo(result.getPrice()));
         verify(repository, times(1)).save(any(Book.class));
+    }
+
+    /** Verifies service callers cannot bypass entity constraints by skipping controller validation. */
+    @Test
+    void addBook_whenEntityConstraintsFail_shouldRejectBeforeSave() {
+        BookRequestDTO invalid = new BookRequestDTO(" ", "Author", "Genre", BigDecimal.ONE);
+
+        assertThrows(ConstraintViolationException.class, () -> bookService.addBook(invalid));
+
+        verify(repository, never()).save(any());
     }
 
     // ---------- findBookById ----------

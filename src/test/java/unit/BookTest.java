@@ -82,6 +82,17 @@ class BookTest {
         assertTrue(violations.isEmpty(), "Expected zero validation errors for a valid DTO, but got: " + violations);
     }
 
+    /** Verifies the persistence model's own constraints are executable, not documentation only. */
+    @Test
+    void invalidBookEntityFailsValidation() {
+        Book invalidBook = new Book(" ", "Author", "Genre", BigDecimal.ZERO);
+
+        Set<ConstraintViolation<Book>> violations = VALIDATOR.validate(invalidBook);
+
+        assertTrue(violations.stream().anyMatch(v -> v.getMessage().equals("Title cannot be blank")));
+        assertTrue(violations.stream().anyMatch(v -> v.getMessage().equals("Price must be greater than 0")));
+    }
+
     @Test
     void prePersistSetsCreatedAt() {
         Book book = new Book("The Hobbit", "J.R.R. Tolkien", "Fantasy", new BigDecimal("12.99"));

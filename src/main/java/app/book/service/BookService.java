@@ -74,6 +74,8 @@ public class BookService {
 
         // Use the mapper to convert DTO → Entity (keeps construction centralized)
         Book newBook = mapper.toEntity(input);
+
+        // Validate using validator method
         validateEntity(newBook);
         repository.save(newBook);
 
@@ -197,9 +199,11 @@ public class BookService {
 
         // 3. Update entire entity using BookMapper
         mapper.updateBookFromDto(updates, existingBook);
+
+        // 4. Validate entity using existing validator method
         validateEntity(existingBook);
 
-        // 4. Persist and return managed book entity through dirty checking
+        // 5. Persist and return managed book entity through dirty checking
         return existingBook;
     }
 
